@@ -1,0 +1,42 @@
+[
+  {
+    "fall": 3,
+    "titel": "Schmierereien im AKH",
+    "taeter": "Kathi",
+    "positionen": {
+      "Johannes": "A6",
+      "Dani": "C7",
+      "Sibylle": "B8",
+      "Leah": "D2",
+      "Kathi": "H4",
+      "Objektiv": "G3",
+      "Alex": "F5",
+      "Marius": "E1"
+    },
+    "hinweise": [
+      "Johannes war im Büro 1, aber nicht neben dem Teppich.",
+      "Dani und Sibylle befanden sich schräg nebeneinander.",
+      "Leah hatte den ganzen Bereich für sich allein.",
+      "Kathi befand sich direkt neben einem Mikroskop.",
+      "Alex befand sich weiter unten als Kathi.",
+      "Marius befand sich weiter links als Alex.",
+      "Sibylle saß auf einem Stuhl, am äußeren Rand des Plans."
+    ],
+    "proben": 1,
+    "loesungsweg": [
+      "Kathi befand sich direkt neben einem Mikroskop – das geht nur auf G4 oder H4.",
+      "Sibylle saß auf einem Stuhl, am äußeren Rand des Plans – das geht nur auf H4, A6 oder B8.",
+      "Da Kathi sicher in Zeile 4 steht, ist Zeile 4 für alle anderen tabu.",
+      "Johannes (B5, D5 oder A6), Dani (B5 oder C7), Alex und Sibylle (A6 oder B8) passen zusammen nur in die Zeilen 5, 6, 7 und 8 – diese sind damit für alle anderen gesperrt.",
+      "Angenommen, Dani stünde auf B5. Daraus folgt: Sibylle auf A6 – und dann bliebe für Johannes kein Feld mehr übrig. Also scheidet B5 für Dani aus.",
+      "Damit bleibt für Dani nur noch C7.",
+      "Dani und Sibylle befanden sich schräg nebeneinander – da Dani schon feststeht, bleibt für Sibylle nur B8.",
+      "In Spalte A kann nur noch Johannes stehen – also auf A6.",
+      "Leah hatte den ganzen Bereich für sich allein – also steht Leah auf D2.",
+      "Marius befand sich weiter links als Alex – von den passenden Feldern ist nur noch E1 frei.",
+      "Alex befand sich weiter unten als Kathi – von den passenden Feldern ist nur noch F5 frei.",
+      "Kathi befand sich direkt neben einem Mikroskop – von den passenden Feldern ist nur noch H4 frei.",
+      "Übrig bleibt G3: Dort war das Objektiv. Im Bestrahlungsraum war sonst nur Kathi – also: Kathi hat das Objektiv beschmiert!"
+    ]
+  }
+]

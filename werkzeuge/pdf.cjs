@@ -10,6 +10,22 @@ const fs = require('fs');
   const page = await browser.newPage();
   await page.goto('file://' + path.resolve(html), { waitUntil: 'networkidle' });
   await page.evaluate(() => document.fonts.ready);
+  // Rätselseiten: Plan so groß wie möglich, aber "Wer war's?" muss mit 12 mm
+  // Abstand zum unteren Rand auf die Seite passen.
+  const breiten = await page.evaluate(() => {
+    const mm = 96 / 25.4, ergebnis = [];
+    for (const s of document.querySelectorAll('section.seite.fall')) {
+      const fig = s.querySelector('.haupt figure'), u = s.querySelector('.urteil');
+      if (!fig || !u) continue;
+      const grenze = s.getBoundingClientRect().bottom - 12 * mm;
+      let w = 102;
+      fig.style.width = w + 'mm';
+      while (u.getBoundingClientRect().bottom > grenze && w > 70) { w -= 1; fig.style.width = w + 'mm'; }
+      ergebnis.push(w);
+    }
+    return ergebnis;
+  });
+  console.log('Planbreiten (mm):', breiten.join(', '));
   await page.pdf({ path: pdf, preferCSSPageSize: true, printBackground: true });
   if (vorschau) {
     fs.mkdirSync(vorschau, { recursive: true });

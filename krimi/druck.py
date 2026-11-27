@@ -228,6 +228,12 @@ def _seite_regeln(fall: Fall | None) -> str:
 </section>"""
 
 
+def _dichte_legende(anzahl_legende: int) -> bool:
+    """Lange Legenden (> 20 Einträge) fünf- statt vierspaltig setzen. Die
+    Planbreite passt werkzeuge/pdf.cjs danach im Browser genau an die Seite an."""
+    return anzahl_legende > 20
+
+
 def _seite_fall(r: Raetsel) -> str:
     f = r.fall
     verdaechtige = [p for p in f.personen if not p.opfer]
@@ -254,6 +260,7 @@ def _seite_fall(r: Raetsel) -> str:
         f'<span class="{"ok" if kat[k].besetzbar else "nein"}">'
         f'{"✓" if kat[k].besetzbar else "✕"}</span></li>' for k in arten)
 
+    planbreite, dicht = 102, _dichte_legende(len(f.bereiche) + len(arten))
     hinweise_html = "".join(
         f"<li>{_chip(f.personen[h.subjekt])}<span>{_e(r.text(h))}</span></li>"
         for h in sorted(r.hinweise, key=lambda h: h.subjekt))
@@ -268,12 +275,12 @@ def _seite_fall(r: Raetsel) -> str:
   <p class="intro">{_e(f.intro)}</p>
   <p class="frage">{_e(f.frage)}</p>
   <div class="haupt">
-    <figure>{plan_svg(f)}</figure>
+    <figure style="width:{planbreite:.0f}mm">{plan_svg(f)}</figure>
     <aside>
       <h3>Personen</h3><ul class="personen">{personen_html}</ul>
     </aside>
   </div>
-  <ul class="legende">{bereiche_html}{legende_html}</ul>
+  <ul class="legende{" dicht" if dicht else ""}">{bereiche_html}{legende_html}</ul>
   <h2>Hinweise</h2>
   <ul class="hinweise">{hinweise_html}</ul>
   <div class="urteil"><span>Wer war's?</span><span class="linie"></span></div>
@@ -380,6 +387,10 @@ h3 { font-family: var(--titel), monospace; font-weight: 400; font-size: 11pt;
 
 .haupt { display: flex; gap: 6mm; align-items: flex-start; }
 .haupt figure { margin: 0; width: 102mm; flex: none; }
+.legende.dicht { grid-template-columns: repeat(5, 1fr); font-size: 10.3pt; gap: .4mm 2.5mm; }
+.legende.dicht .icon { width: 6.3mm; height: 6.3mm; }
+.legende.dicht li { grid-template-columns: 6.3mm 1fr auto; gap: 1.2mm; }
+.legende.dicht li.bereich { grid-template-columns: 6.3mm 1fr; }
 .haupt aside { flex: 1; min-width: 0; }
 .haupt aside ul { list-style: none; padding: 0; margin: 0 0 4mm; }
 .plan { width: 100%; height: auto; display: block; }

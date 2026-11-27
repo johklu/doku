@@ -1,0 +1,89 @@
+# Fall 03 – Schmierereien im AKH (aus der Grundriss-Werkstatt)
+# Achtung TOML: alle einfachen Einträge müssen VOR der ersten [Tabelle] stehen.
+
+nummer = 3
+titel = "Schmierereien im AKH"
+ort = "AKH, Wien"
+schwierigkeit = "mittel"
+seed = 1
+
+frage = "Wer hat das Objektiv verunstaltet?"
+tat = "hat das Objektiv beschmiert"
+
+intro = """
+Montagmorgen im Labor. Das sündteure neue Objektiv – gerade erst geliefert,
+noch nicht einmal inventarisiert – ist über und über mit Edding beschmiert.
+Irgendjemand hat sich offenbar beim Warten auf die Zellkulturen gelangweilt.
+Sieben Kolleginnen und Kollegen waren zu dieser Zeit in der Abteilung.
+"""
+
+plan = """
+AAAADDEE
+AAAADDEE
+AAAADDEE
+BBBBDDEE
+BBBBDDEE
+BBBBDDFF
+CCCCDDFF
+CCCCDDFF
+"""
+
+objekte = """
+Kü Sr .. Sp .. .. Sr Sp
+In .. .. .. .. .. .. Sp
+In Sr Wa Sp Sr .. .. Ti
+Sr Rg .. Se .. .. St St
+Sd Te .. .. .. .. Mi Mi
+St .. Pf Sp Sr .. .. Wc
+Sr Rg .. .. .. .. Wa Wc
+Sd St .. Sp Sr Fa Wa Wc
+"""
+
+[stil]
+akzent = "#1d6a86"           # Klinik-Blau
+tinte = "#231d17"
+titelschrift = "Special Elite"
+textschrift = "Crimson Pro"
+
+[bereiche]
+A = { name = "Inkubationsraum", praep = "im Inkubationsraum", farbe = "#f3d3cd" }
+B = { name = "Büro 1", praep = "im Büro 1", farbe = "#f0e0ae" }
+C = { name = "Büro 2", praep = "im Büro 2", farbe = "#afa380" }
+D = { name = "Gang", praep = "im Gang", farbe = "#cde5bf" }
+E = { name = "Bestrahlungsraum", praep = "im Bestrahlungsraum", farbe = "#e2d4ef" }
+F = { name = "Toilette", praep = "in der Toilette", farbe = "#9483f6" }
+
+[[personen]]
+name = "Johannes"
+bereich = "B"
+
+[[personen]]
+name = "Dani"
+bereich = "C"
+
+[[personen]]
+name = "Leah"
+bereich = "A"
+
+[[personen]]
+name = "Kathi"
+bereich = "E"
+
+[[personen]]
+name = "Alex"
+bereich = "D"
+
+[[personen]]
+name = "Marius"
+bereich = "D"
+
+[[personen]]
+name = "Sibylle"
+bereich = "C"
+
+[opfer]
+name = "Objektiv"
+bereich = "E"
+nominativ = "das Objektiv"
+dativ = "dem Objektiv"
+akkusativ = "das Objektiv"
