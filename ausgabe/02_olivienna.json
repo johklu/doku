@@ -1,0 +1,32 @@
+[
+  {
+    "fall": 2,
+    "titel": "Olivienna",
+    "taeter": "Lari",
+    "positionen": {
+      "Leah": "A4",
+      "Maxi": "B1",
+      "Moro": "F2",
+      "Lari": "D6",
+      "Oliven": "C3",
+      "Johann": "E5"
+    },
+    "hinweise": [
+      "Leah und Maxi waren im selben Bereich.",
+      "Maxi befand sich weiter oben als Moro.",
+      "Moro befand sich direkt neben dem Bett.",
+      "Lari war in der Flur-Küche, am äußeren Rand des Plans.",
+      "Johann hatte den ganzen Bereich für sich allein."
+    ],
+    "proben": 0,
+    "loesungsweg": [
+      "Moro befand sich direkt neben dem Bett – das geht nur auf D1, E2 oder F2.",
+      "Lari war in der Flur-Küche, am äußeren Rand des Plans – das ist nur auf D6 möglich.",
+      "In Zeile 4 kann nur noch Leah stehen – also auf A4.",
+      "Leah und Maxi waren im selben Bereich – da Leah schon feststeht, bleibt für Maxi nur B1.",
+      "Johann hatte den ganzen Bereich für sich allein – von den passenden Feldern ist nur noch E5 frei.",
+      "Moro befand sich direkt neben dem Bett – von den passenden Feldern ist nur noch F2 frei.",
+      "Übrig bleibt C3: Dort waren die Oliven. In der Flur-Küche war sonst nur Lari – also: Lari hat die Oliven vernichtet!"
+    ]
+  }
+]

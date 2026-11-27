@@ -1,0 +1,75 @@
+[
+  {
+    "fall": 1,
+    "titel": "Abpfiff in Müngersdorf",
+    "taeter": "René",
+    "positionen": {
+      "Leah": "H4",
+      "Carli": "F1",
+      "Stephan": "G8",
+      "Thomas": "D3",
+      "René": "B6",
+      "Ragnar": "E5",
+      "Timo": "C2",
+      "Okon-Engstler": "A7"
+    },
+    "hinweise": [
+      "Leah saß auf einem Sitz, aber nicht neben einer Kamera.",
+      "Carli befand sich weiter links als Leah.",
+      "Stephan befand sich direkt neben einer Kamera.",
+      "Thomas befand sich direkt neben einem Sessel.",
+      "René saß auf einer Bank.",
+      "Ragnar hatte den ganzen Bereich für sich allein.",
+      "Timo und Thomas befanden sich schräg nebeneinander."
+    ],
+    "proben": 1,
+    "loesungsweg": [
+      "Thomas befand sich direkt neben einem Sessel – das geht nur auf D3 oder E3.",
+      "René saß auf einer Bank – das geht nur auf B6 oder B7.",
+      "Da Thomas sicher in Zeile 3 steht, ist Zeile 3 für alle anderen tabu.",
+      "Timo kommt nur noch in Zeile 2 in Frage (C2 oder F2) – für alle anderen ist Zeile 2 damit tabu.",
+      "Da René sicher in Spalte B steht, ist Spalte B für alle anderen tabu.",
+      "René saß auf einer Bank – von den passenden Feldern ist nur noch B6 frei.",
+      "Angenommen, Leah stünde auf H1. Daraus folgt Stephan auf G8 – und dann bliebe für Carli kein Feld mehr übrig. Also scheidet H1 für Leah aus.",
+      "Damit bleibt für Leah nur noch H4.",
+      "Ragnar kommt nur noch in Zeile 5 in Frage (D5 oder E5) – für alle anderen ist Zeile 5 damit tabu.",
+      "Thomas (D3 oder E3) und Ragnar (D5 oder E5) passen zusammen nur in die Spalten D und E – diese sind damit für alle anderen gesperrt.",
+      "Stephan befand sich direkt neben einer Kamera – da Spalte D und Spalte E gesperrt sind, bleibt nur G8.",
+      "Carli befand sich weiter links als Leah – von den passenden Feldern ist nur noch F1 frei.",
+      "Timo und Thomas befanden sich schräg nebeneinander – von den passenden Feldern ist nur noch C2 frei.",
+      "Timo und Thomas befanden sich schräg nebeneinander – da Timo schon feststeht, bleibt für Thomas nur D3.",
+      "Ragnar hatte den ganzen Bereich für sich allein – von den passenden Feldern ist nur noch E5 frei.",
+      "Übrig bleibt A7: Dort war Okon-Engstler. In der Kabine war sonst nur René – also: René hat Okon-Engstler mit Kölsch beworfen!"
+    ]
+  },
+  {
+    "fall": 2,
+    "titel": "Olivienna",
+    "taeter": "Lari",
+    "positionen": {
+      "Leah": "A4",
+      "Maxi": "B1",
+      "Moro": "F2",
+      "Lari": "D6",
+      "Oliven": "C3",
+      "Johann": "E5"
+    },
+    "hinweise": [
+      "Leah und Maxi waren im selben Bereich.",
+      "Maxi befand sich weiter oben als Moro.",
+      "Moro befand sich direkt neben dem Bett.",
+      "Lari war in der Flur-Küche, am äußeren Rand des Plans.",
+      "Johann hatte den ganzen Bereich für sich allein."
+    ],
+    "proben": 0,
+    "loesungsweg": [
+      "Moro befand sich direkt neben dem Bett – das geht nur auf D1, E2 oder F2.",
+      "Lari war in der Flur-Küche, am äußeren Rand des Plans – das ist nur auf D6 möglich.",
+      "In Zeile 4 kann nur noch Leah stehen – also auf A4.",
+      "Leah und Maxi waren im selben Bereich – da Leah schon feststeht, bleibt für Maxi nur B1.",
+      "Johann hatte den ganzen Bereich für sich allein – von den passenden Feldern ist nur noch E5 frei.",
+      "Moro befand sich direkt neben dem Bett – von den passenden Feldern ist nur noch F2 frei.",
+      "Übrig bleibt C3: Dort waren die Oliven. In der Flur-Küche war sonst nur Lari – also: Lari hat die Oliven vernichtet!"
+    ]
+  }
+]

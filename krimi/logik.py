@@ -65,7 +65,16 @@ class Logik:
 
     # --- Hilfen ----------------------------------------------------------
     def name(self, p: int) -> str:
-        return self.fall.personen[p].name
+        return self.fall.personen[p].nom
+
+    def akk(self, p: int) -> str:
+        return self.fall.personen[p].akk
+
+    def dat(self, p: int) -> str:
+        return self.fall.personen[p].dat
+
+    def verb(self, p: int, einzahl: str, mehrzahl: str) -> str:
+        return mehrzahl if self.fall.personen[p].mehrzahl else einzahl
 
     def kopie(self) -> "Logik":
         k = Logik.__new__(Logik)
@@ -96,9 +105,9 @@ class Logik:
             return (f"könnte {name} den Hinweis „{_ohne_punkt(grund[1].text(self.fall))}“ "
                     f"nicht mehr erfüllen")
         if grund[0] == "opfer":
-            return (f"wäre im Bereich von {name} nicht genau eine weitere Person "
-                    f"(dann gäbe es keinen eindeutigen Übeltäter)")
-        return f"bliebe für {name} kein Feld mehr übrig"
+            return (f"wäre außer {self.dat(p)} nicht genau eine weitere Person im selben "
+                    f"Bereich (dann gäbe es keinen eindeutigen Übeltäter)")
+        return f"bliebe für {self.akk(p)} kein Feld mehr übrig"
 
     def _felder(self, zellen) -> str:
         return _aufzaehlung([self.fall.koordinate(z) for z in sorted(zellen)]).replace(" und ", " oder ")
@@ -279,12 +288,12 @@ class Logik:
                               if q != p and len(versuch.D[q]) == 1 and len(self.D[q]) > 1]
                     self.max_kette = max(self.max_kette, len(folgen))
                     if self.protokoll:
-                        kette = (f"Daraus folgt {_aufzaehlung(folgen)} – und dann {w.grund}"
+                        kette = (f"Daraus folgt: {_aufzaehlung(folgen)} – und dann {w.grund}"
                                  if folgen else f"Dann {w.grund}")
                         self.schritte.append(
-                            f"Angenommen, {self.name(p)} stünde auf {self.fall.koordinate(z)}. "
-                            f"{kette}. Also scheidet {self.fall.koordinate(z)} für "
-                            f"{self.name(p)} aus.")
+                            f"Angenommen, {self.name(p)} {self.verb(p, 'stünde', 'stünden')} "
+                            f"auf {self.fall.koordinate(z)}. {kette}. Also scheidet "
+                            f"{self.fall.koordinate(z)} für {self.akk(p)} aus.")
                     self._entferne(p, {z}, ("probe", z))
                     self.propagiere()
                     return True
@@ -310,12 +319,14 @@ class Logik:
             p = gruppe[0]
             if self.bekannt.get(p) == frozenset(self.D[p]):
                 self.schritte.append(
-                    f"Da {namen_l[0]} sicher in {art} {bez[0]} steht, ist {art} {bez[0]} "
+                    f"Da {namen_l[0]} sicher in {art} {bez[0]} {self.verb(p, 'steht', 'stehen')}, "
+                    f"ist {art} {bez[0]} "
                     f"für alle anderen tabu.")
             else:
                 felder = (f" ({self._felder(self.D[p])})" if len(self.D[p]) <= 4 else "")
                 self.schritte.append(
-                    f"{namen_l[0]} kommt nur noch in {art} {bez[0]} in Frage{felder} – "
+                    f"{namen_l[0]} {self.verb(p, 'kommt', 'kommen')} nur noch in {art} {bez[0]} "
+                    f"in Frage{felder} – "
                     f"für alle anderen ist {art} {bez[0]} damit tabu.")
             self.bekannt[p] = frozenset(self.D[p])
         else:
@@ -379,7 +390,8 @@ class Logik:
         b = f.bereich(zv)
         taeter = next(p for p in range(self.P) if p != self.v and f.bereich(self.fest(p)) == b)
         self.schritte.append(
-            f"Übrig bleibt {f.koordinate(zv)}: Dort war {self.name(self.v)}. "
+            f"Übrig bleibt {f.koordinate(zv)}: Dort {self.verb(self.v, 'war', 'waren')} "
+            f"{self.name(self.v)}. "
             f"{f.bereiche[b].praep[0].upper()}{f.bereiche[b].praep[1:]} war sonst nur "
             f"{self.name(taeter)} – also: {self.name(taeter)} {f.tat}!")
 
@@ -389,7 +401,8 @@ def loese_logisch(fall: Fall, hinweise: list[Hinweis], max_proben: int = 99,
     """(Lösung | None, Anzahl Proben, Schritte)."""
     l = Logik(fall, hinweise, protokoll=protokoll)
     stellung = l.loese(max_proben=max_proben)
-    return stellung, l.proben, l.schritte
+    schritte = [s[:1].upper() + s[1:] for s in l.schritte]   # "die Oliven …" am Satzanfang
+    return stellung, l.proben, schritte
 
 
 def bewerte(fall: Fall, hinweise: list[Hinweis], max_proben: int = 99) -> Logik:

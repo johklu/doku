@@ -29,6 +29,23 @@ class Person:
     kurz: str
     bereich: str    # Kürzel des Bereichs, in dem die Person laut Lösung war
     opfer: bool = False
+    # Formen für Sätze – wichtig, wenn das "Opfer" keine Person ist ("die Oliven")
+    nominativ: str = ""
+    dativ: str = ""
+    akkusativ: str = ""
+    mehrzahl: bool = False
+
+    @property
+    def nom(self) -> str:
+        return self.nominativ or self.name
+
+    @property
+    def dat(self) -> str:
+        return self.dativ or self.name
+
+    @property
+    def akk(self) -> str:
+        return self.akkusativ or self.name
 
 
 @dataclass
@@ -205,7 +222,9 @@ def lade_fall(pfad: str | Path) -> Fall:
         personen.append(Person(p["name"], kurz, p["bereich"]))
     o = daten["opfer"]
     kurz = o.get("kurz") or _kurzname(o["name"], vergeben)
-    personen.append(Person(o["name"], kurz, o["bereich"], opfer=True))
+    personen.append(Person(o["name"], kurz, o["bereich"], opfer=True,
+                           nominativ=o.get("nominativ", ""), dativ=o.get("dativ", ""),
+                           akkusativ=o.get("akkusativ", ""), mehrzahl=o.get("mehrzahl", False)))
     if len(personen) != n:
         raise ValueError(f"Bei einem {n}x{n}-Plan braucht es genau {n} Personen "
                          f"(inkl. Opfer), gefunden: {len(personen)}.")
@@ -225,7 +244,7 @@ def lade_fall(pfad: str | Path) -> Fall:
         quelle=pfad,
         stil=daten.get("stil", {}),
         frage=daten.get("frage", f"Wer war mit {o['name']} allein?"),
-        tat=daten.get("tat", "war es"),
+        tat=daten.get("tat", "war es").strip().rstrip(".!").strip(),
         katalog=katalog,
         stueck_von=stueck_von,
         stuecke=stuecke,

@@ -266,7 +266,7 @@ def _block_loesung(r: Raetsel) -> str:
   <div class="loesungsblock" {_stil_attr(f)}>
     <h2>Fall {f.nummer:02d} · {_e(f.titel)}</h2>
     <div class="aufloesung"><b>{_e(t.name)}</b> {_e(f.tat)} – als einzige Person mit
-      {_e(o.name)} {_e(bereich.praep)}.</div>
+      {_e(o.dat)} {_e(bereich.praep)}.</div>
     <div class="loesung-inhalt">
       <figure class="klein">{plan_svg(f, r.loesung)}</figure>
       <div><h3>Lösungsweg</h3><ol class="schritte">{schritte}</ol></div>
@@ -393,7 +393,7 @@ h3 { font-family: var(--titel), monospace; font-weight: 400; font-size: 11pt;
 .legende li.bereich .farbfeld { width: 7mm; height: 4.6mm; }
 .icon { width: 7mm; height: 7mm; }
 .ok { color: #2f6b2f; font-weight: 600; }
-.nein { color: var(--akzent); font-weight: 600; }
+.nein { color: #b3261e; font-weight: 600; }   /* feste Signalfarbe, unabhängig vom Fall-Stil */
 
 .hinweise { list-style: none; margin: 0; padding: 0; }
 .hinweise li { display: flex; align-items: center; gap: 3mm; margin-bottom: 1.3mm; }

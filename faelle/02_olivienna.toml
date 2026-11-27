@@ -1,0 +1,79 @@
+# Fall 02 – Olivienna (aus der Grundriss-Werkstatt)
+# Achtung TOML: alle einfachen Einträge müssen VOR der ersten [Tabelle] stehen.
+
+nummer = 2
+titel = "Olivienna"
+ort = "Castigasse, Wien"
+schwierigkeit = "leicht"
+seed = 1
+
+frage = "Wer hat die Oliven gegessen?"
+tat = "hat die Oliven vernichtet"
+
+intro = """
+Ein gemütlicher Abend in der Castigasse. Irgendwo in der Wohnung stand ein
+Schälchen mit den allerbesten Oliven – extra für später aufgehoben. Jetzt ist
+das Schälchen leer, nur ein paar Kerne liegen noch verräterisch herum. Fünf
+Leute waren zu Hause, und alle schwören, sie hätten nichts angerührt.
+"""
+
+plan = """
+AAABBB
+AAABBB
+AADDCC
+AADDCC
+FFDDCC
+FFDDEE
+"""
+
+objekte = """
+Ti St Sd .. Be>@2 Be<
+Fe .. Rg .. .. ..
+Te .. .. He .. Du
+So>@2 So< Kü .. .. ..
+.. .. Sr .. .. Wa
+.. .. Sr .. .. Wc
+"""
+
+[stil]
+akzent = "#5f6f1a"           # Olivgrün
+tinte = "#231d17"
+titelschrift = "Special Elite"
+textschrift = "Crimson Pro"
+
+[bereiche]
+A = { name = "Wohnzimmer", praep = "im Wohnzimmer", farbe = "#f3c194" }
+B = { name = "Schlafzimmer", praep = "im Schlafzimmer", farbe = "#ceb4f0" }
+C = { name = "Bad", praep = "im Bad", farbe = "#d3e0ee" }
+D = { name = "Flur-Küche", praep = "in der Flur-Küche", farbe = "#cde5bf" }
+E = { name = "Toilette", praep = "in der Toilette", farbe = "#e2d4ef" }
+F = { name = "Top 36", praep = "im Top 36", farbe = "#001a78" }
+
+[[personen]]
+name = "Leah"
+bereich = "A"
+
+[[personen]]
+name = "Maxi"
+bereich = "A"
+
+[[personen]]
+name = "Moro"
+bereich = "B"
+
+[[personen]]
+name = "Lari"
+bereich = "D"
+
+[[personen]]
+name = "Johann"
+bereich = "C"
+
+[opfer]
+name = "Oliven"
+bereich = "D"
+# Das "Opfer" ist hier keine Person – damit die Sätze stimmen:
+nominativ = "die Oliven"
+dativ = "den Oliven"
+akkusativ = "die Oliven"
+mehrzahl = true
