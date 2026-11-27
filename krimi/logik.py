@@ -45,7 +45,7 @@ class Logik:
         self.P = len(fall.personen)
         self.v = fall.opfer_index
         self.protokoll = protokoll
-        unaer = [h for h in hinweise if h.paar() is None and h.allein is None]
+        unaer = list(hinweise)   # zweistellige Hinweise erlauben einzeln alles – außer Kombis
         self.binaer = [h for h in hinweise if h.paar() is not None]
         self.allein = {h.allein: h for h in hinweise if h.allein is not None}
         self.hinweis_von: dict[int, Hinweis] = {}

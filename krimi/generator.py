@@ -21,7 +21,7 @@ from dataclasses import dataclass, field
 
 from .fall import Fall, Zelle
 from .hinweise import (AmRand, AndererBereich, AufObjekt, Allein, GleicherBereich,
-                       Hinweis, ImBereich, Kombi, Links, NebenObjekt, NichtImBereich,
+                       Hinweis, ImBereich, InSpalte, InZeile, Kombi, Links, NebenObjekt, NichtImBereich,
                        NichtNebenObjekt, Oben, Schraeg)
 from .logik import bewerte, loese_logisch
 from .loeser import finde_loesungen
@@ -121,6 +121,9 @@ def kandidaten(fall: Fall, pos: dict[int, Zelle], p: int) -> list[Hinweis]:
     h = AmRand(p, rand)
     liste.append(h)
     zweite.append(h)
+    for h in (InSpalte(p, z[1]), InZeile(p, z[0])):
+        liste.append(h)
+        zweite.append(h)
     if sum(1 for q in range(P) if fall.bereich(pos[q]) == b) == 1:
         liste.append(Allein(p))
 
@@ -142,8 +145,12 @@ def kandidaten(fall: Fall, pos: dict[int, Zelle], p: int) -> list[Hinweis]:
         if q in (p, v):
             continue
         zq = pos[q]
-        liste.append(Links(p, q) if z[1] < zq[1] else Links(q, p, umgekehrt=True))
-        liste.append(Oben(p, q) if z[0] < zq[0] else Oben(q, p, umgekehrt=True))
+        links = Links(p, q) if z[1] < zq[1] else Links(q, p, umgekehrt=True)
+        oben = Oben(p, q) if z[0] < zq[0] else Oben(q, p, umgekehrt=True)
+        liste += [links, oben]
+        # Doppelhinweis: "saß auf einem Stuhl, weiter oben als Leah"
+        for a in erste:
+            liste += [Kombi(a, links), Kombi(a, oben)]
         if abs(z[0] - zq[0]) == 1 and abs(z[1] - zq[1]) == 1 and fall.bereich(zq) == b:
             liste.append(Schraeg(p, q))
         if fall.bereich(zq) == b:
@@ -176,10 +183,13 @@ def _gewicht(h: Hinweis) -> float:
     return 0.5 + h.prio
 
 
+_FORM = {"InSpalte": "Linie", "InZeile": "Linie"}   # Zeile/Spalte zählen zusammen
+
+
 def satzformen(h: Hinweis) -> list[str]:
     if isinstance(h, Kombi):
-        return [type(h.a).__name__, type(h.b).__name__]
-    return [type(h).__name__]
+        return [_FORM.get(type(x).__name__, type(x).__name__) for x in (h.a, h.b)]
+    return [_FORM.get(type(h).__name__, type(h).__name__)]
 
 
 def _note(hinweise: list[Hinweis]) -> float:
@@ -189,6 +199,7 @@ def _note(hinweise: list[Hinweis]) -> float:
     s += typen["ImBereich"] * 1.5
     s += typen["NichtImBereich"] * 0.5
     s += max(0, typen["Kombi"] - 2) * 1.5
+    s += (typen["InSpalte"] + typen["InZeile"]) * 0.6          # recht direkte Angabe
     formen = Counter(f for h in hinweise for f in satzformen(h))
     s += sum(max(0, n - 1) for n in formen.values()) * 1.5  # gleiche Satzform
     schwach = sum(1 for h in hinweise if isinstance(h, NichtNebenObjekt)

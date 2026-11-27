@@ -20,7 +20,7 @@ from .hinweise import Hinweis
 
 def _vorbereiten(fall: Fall, hinweise: list[Hinweis]):
     P = len(fall.personen)
-    unaer = [h for h in hinweise if h.paar() is None and h.allein is None]
+    unaer = list(hinweise)   # zweistellige Hinweise erlauben einzeln alles – außer Kombis
     binaer = [h for h in hinweise if h.paar() is not None]
     allein = {h.allein for h in hinweise if h.allein is not None}
     dom = []

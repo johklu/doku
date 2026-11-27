@@ -25,6 +25,7 @@ ARGUMENTE = {
     "AufObjekt": ["p", "k"], "NebenObjekt": ["p", "k"], "NichtNebenObjekt": ["p", "k"],
     "AmRand": ["p", "ja"], "Allein": ["p"],
     "GleicherBereich": ["p", "q"], "AndererBereich": ["p", "q"], "Schraeg": ["p", "q"],
+    "InSpalte": ["p", "s"], "InZeile": ["p", "r"],
     "Links": ["p", "q", "umgekehrt"], "Oben": ["p", "q", "umgekehrt"],
 }
 

@@ -223,6 +223,56 @@ class AmRand(Hinweis):
         return f"{_name(fall, self.p)} befand sich {self.zusatz(fall)}."
 
 
+class InSpalte(Hinweis):
+    """Person stand in einer bestimmten Spalte (Buchstabe am Planrand)."""
+    prio = 2.5
+    komma = False        # "saß auf einem Stuhl in Spalte C"
+
+    def __init__(self, p: int, s: int):
+        self.p, self.s = p, s
+        self.personen = (p,)
+
+    def erlaubt(self, fall, p, z):
+        return p != self.p or z[1] == self.s
+
+    def gilt(self, fall, pos):
+        return pos[self.p][1] == self.s
+
+    def zusatz(self, fall):
+        return f"in Spalte {'ABCDEFGHIJKL'[self.s]}"
+
+    def _text(self, fall):
+        return f"{_name(fall, self.p)} befand sich {self.zusatz(fall)}."
+
+    def bausteine(self):
+        return {f"InSpalte:{self.s}"}
+
+
+class InZeile(Hinweis):
+    """Person stand in einer bestimmten Zeile (Zahl am Planrand)."""
+    prio = 2.5
+    komma = False
+
+    def __init__(self, p: int, r: int):
+        self.p, self.r = p, r
+        self.personen = (p,)
+
+    def erlaubt(self, fall, p, z):
+        return p != self.p or z[0] == self.r
+
+    def gilt(self, fall, pos):
+        return pos[self.p][0] == self.r
+
+    def zusatz(self, fall):
+        return f"in Zeile {self.r + 1}"
+
+    def _text(self, fall):
+        return f"{_name(fall, self.p)} befand sich {self.zusatz(fall)}."
+
+    def bausteine(self):
+        return {f"InZeile:{self.r}"}
+
+
 class Niemand(Hinweis):
     """Kein Mensch (auch nicht das Opfer) stand auf einem bestimmten Objekt."""
     prio = 3
@@ -313,6 +363,11 @@ class Links(_Binaer):
     def ok2(self, fall, za, zb):
         return za[1] < zb[1]
 
+    def zusatz(self, fall):
+        if self.umgekehrt:
+            return f"weiter rechts als {_name(fall, self.p)}"
+        return f"weiter links als {_name(fall, self.q)}"
+
     def _text(self, fall):
         if self.umgekehrt:
             return f"{_name(fall, self.q)} befand sich weiter rechts als {_name(fall, self.p)}."
@@ -334,6 +389,11 @@ class Oben(_Binaer):
     def ok2(self, fall, za, zb):
         return za[0] < zb[0]
 
+    def zusatz(self, fall):
+        if self.umgekehrt:
+            return f"weiter unten als {_name(fall, self.p)}"
+        return f"weiter oben als {_name(fall, self.q)}"
+
     def _text(self, fall):
         if self.umgekehrt:
             return f"{_name(fall, self.q)} befand sich weiter unten als {_name(fall, self.p)}."
@@ -354,7 +414,9 @@ class Schraeg(_Binaer):
 
 class Kombi(Hinweis):
     """Zwei Aussagen über dieselbe Person in einem Satz:
-    "Leah saß auf einem Sitz, direkt neben einer Kamera." """
+    "Leah saß auf einem Sitz, direkt neben einer Kamera."
+    "Pete saß auf einem Stuhl, weiter oben als Leah." (zweiter Teil zweistellig)
+    "Calzi saß auf einem Sessel in Spalte D." """
     prio = 3.5
 
     def __init__(self, a: Hinweis, b: Hinweis):
@@ -364,11 +426,18 @@ class Kombi(Hinweis):
     def erlaubt(self, fall, p, z):
         return self.a.erlaubt(fall, p, z) and self.b.erlaubt(fall, p, z)
 
+    def paar(self):
+        return self.b.paar()
+
+    def ok2(self, fall, za, zb):
+        return self.b.ok2(fall, za, zb)
+
     def gilt(self, fall, pos):
         return self.a.gilt(fall, pos) and self.b.gilt(fall, pos)
 
     def _text(self, fall):
-        return f"{_name(fall, self.a.p)} {self.a.praedikat(fall)}, {self.b.zusatz(fall)}."
+        trenner = ", " if getattr(self.b, "komma", True) else " "
+        return f"{_name(fall, self.a.p)} {self.a.praedikat(fall)}{trenner}{self.b.zusatz(fall)}."
 
     def schluessel(self):
         return ("Kombi", self.a.schluessel(), self.b.schluessel())
