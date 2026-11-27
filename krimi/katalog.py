@@ -237,6 +237,45 @@ _TEPPICH2 = """
 <path d="M72 50l14-14 14 14-14 14zM114 50l14-14 14 14-14 14z"/>
 <path d="M8 24h10M8 38h10M8 52h10M8 66h10M8 80h0M182 24h10M182 38h10M182 52h10M182 66h10"/>"""
 
+# --- Skipiste ------------------------------------------------------------------
+
+_SCHNEEKANONE = """
+<path class="k" d="M18 60l44-30 10 15-44 30z"/>
+<path class="k" d="M60 27l8-5 10 15-8 5z"/>
+<path d="M38 64l-10 26M38 64l12 26M22 90h32"/>
+<circle class="f" cx="84" cy="22" r="4"/><circle class="f" cx="92" cy="34" r="3"/>
+<circle class="f" cx="88" cy="10" r="3"/><circle class="f" cx="78" cy="8" r="2.5"/>"""
+
+_SCHNEEMANN = """
+<circle class="f" cx="50" cy="74" r="20"/>
+<circle class="f" cx="50" cy="44" r="14"/>
+<circle class="f" cx="50" cy="23" r="10"/>
+<rect class="k" x="41" y="3" width="18" height="10" rx="1"/>
+<path d="M35 13h30M36 42L20 32M64 42l16-10"/>
+<path class="k" d="M50 22l11 3-11 2z"/>
+<circle class="k" cx="50" cy="40" r="2.5"/><circle class="k" cx="50" cy="49" r="2.5"/>"""
+
+_FELSEN = """
+<path class="k" d="M8 86l12-38 20-22 24 6 18 24 10 30z"/>
+<path class="w" d="M40 26l8 26M64 32l-8 24M48 52l-14 14"/>"""
+
+_SCHNEE = """
+<path d="M50 12v76M17 31l66 38M17 69l66-38"/>
+<path d="M42 18l8 8 8-8M42 82l8-8 8 8M17 42l11-3-3-11M83 58l-11 3 3 11M17 58l11 3-3 11M83 42l-11-3 3-11"/>"""
+
+_SCHANZE = """
+<path class="f" d="M6 86h88V40C64 46 34 66 6 86z"/>
+<path d="M94 40h-6M20 86V76M40 86V64M60 86V52M80 86V44"/>"""
+
+_BUCKEL = """
+<path class="f" d="M4 82c6-30 32-30 38 0c6-30 32-30 38 0c4-12 10-16 16-16v16z"/>
+<path d="M14 66c4-8 10-10 16-8M52 66c4-8 10-10 16-8"/>"""
+
+_TIEFSCHNEE = """
+<path class="f" d="M4 92V56c12-10 24-10 36 0s24 10 36 0 16-8 20-8v44z"/>
+<path d="M4 74c12-10 24-10 36 0s24 10 36 0 16-8 20-8"/>
+<path d="M22 18v16M14 26h16M16 20l12 12M28 20L16 32M66 12v14M59 19h14M61 14l10 10M71 14L61 24"/>"""
+
 
 KATALOG: dict[str, Objekt] = {o.kuerzel: o for o in [
     # besetzbar
@@ -294,6 +333,18 @@ KATALOG: dict[str, Objekt] = {o.kuerzel: o for o in [
        "saß auf einem Fahrrad", "saß auf dem Fahrrad", "Niemand saß auf einem Fahrrad.", _FAHRRAD),
     _o("Wc", "Toilette", True, "einer Toilette", "der Toilette",
        "saß auf einer Toilette", "saß auf der Toilette", "Niemand saß auf einer Toilette.", _TOILETTE),
+    # Skipiste
+    _o("Sk", "Schneekanone", False, "einer Schneekanone", "der Schneekanone", icon=_SCHNEEKANONE),
+    _o("Sm", "Schneemann", False, "einem Schneemann", "dem Schneemann", icon=_SCHNEEMANN),
+    _o("Fs", "Felsen", False, "einem Felsen", "dem Felsen", icon=_FELSEN),
+    _o("Sn", "Schnee", True, "Schnee", "dem Schnee",
+       "stand im Schnee", "stand im Schnee", "Niemand stand im Schnee.", _SCHNEE),
+    _o("Sz", "Schanze", True, "einer Schanze", "der Schanze",
+       "stand auf einer Schanze", "stand auf der Schanze", "Niemand stand auf einer Schanze.", _SCHANZE),
+    _o("Bk", "Buckel", True, "einem Buckel", "dem Buckel",
+       "stand auf einem Buckel", "stand auf dem Buckel", "Niemand stand auf einem Buckel.", _BUCKEL),
+    _o("Ts", "Tiefschnee", True, "Tiefschnee", "dem Tiefschnee",
+       "stand im Tiefschnee", "stand im Tiefschnee", "Niemand stand im Tiefschnee.", _TIEFSCHNEE),
 ]}
 
 # Diese Gegenstände dürfen 1 oder 2 Felder groß sein
