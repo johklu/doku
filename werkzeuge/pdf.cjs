@@ -18,10 +18,17 @@ const fs = require('fs');
       const fig = s.querySelector('.haupt figure'), u = s.querySelector('.urteil');
       if (!fig || !u) continue;
       const grenze = s.getBoundingClientRect().bottom - 12 * mm;
-      let w = 102;
-      fig.style.width = w + 'mm';
-      while (u.getBoundingClientRect().bottom > grenze && w > 70) { w -= 1; fig.style.width = w + 'mm'; }
-      ergebnis.push(w);
+      // Reicht die kleinste Planbreite nicht, wird die Seite stufenweise
+      // dichter gesetzt (lange Einleitung, viele Gegenstände).
+      let w = 102, stufe = 0;
+      for (const klasse of ['', 'eng', 'enger']) {
+        if (klasse) { s.classList.add(klasse); stufe++; }
+        w = 102;
+        fig.style.width = w + 'mm';
+        while (u.getBoundingClientRect().bottom > grenze && w > 70) { w -= 1; fig.style.width = w + 'mm'; }
+        if (u.getBoundingClientRect().bottom <= grenze) break;
+      }
+      ergebnis.push(stufe ? `${w} (dicht ${stufe})` : w);
     }
     return ergebnis;
   });

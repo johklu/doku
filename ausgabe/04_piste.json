@@ -1,0 +1,44 @@
+[
+  {
+    "fall": 4,
+    "titel": "Puder auf der Piste",
+    "taeter": "Johann",
+    "positionen": {
+      "Calzi": "B2",
+      "Hosen": "C9",
+      "Pete": "H3",
+      "Leah": "I5",
+      "Johann": "D6",
+      "Ovomaltine": "E8",
+      "Equi": "G4",
+      "Trilling": "F7",
+      "Ranges": "A1"
+    },
+    "hinweise": [
+      "Calzi saß auf einem Stuhl, weiter oben als Leah.",
+      "Hosen befand sich direkt neben dem Tisch.",
+      "Pete stand auf einem Buckel in Zeile 3.",
+      "Leah befand sich in Zeile 5.",
+      "Johann stand im Schnee, weiter links als Trilling.",
+      "Equi war auf der roten Piste, aber nicht neben einem Buckel.",
+      "Trilling und Equi waren im selben Bereich.",
+      "Ranges befand sich in Spalte A.",
+      "Die Ovomaltine befand sich direkt neben einer Schanze."
+    ],
+    "proben": 0,
+    "loesungsweg": [
+      "Hosen befand sich direkt neben dem Tisch – das geht nur auf D7, C8 oder C9.",
+      "Pete stand auf einem Buckel in Zeile 3 – das ist nur auf H3 möglich.",
+      "Calzi kommt nur noch in Zeile 2 in Frage (A2 oder B2) – für alle anderen ist Zeile 2 damit tabu.",
+      "In Spalte I kann nur noch Leah stehen – also auf I5.",
+      "Equi war auf der roten Piste, aber nicht neben einem Buckel – von den passenden Feldern ist nur noch G4 frei.",
+      "In Spalte B kann nur noch Calzi stehen – also auf B2.",
+      "Die Ovomaltine kommt nur noch in Spalte E in Frage (E6 oder E8) – für alle anderen ist Spalte E damit tabu.",
+      "Johann stand im Schnee, weiter links als Trilling – damit bleibt für Trilling nur F7.",
+      "In Zeile 1 kann nur noch Ranges stehen – also auf A1.",
+      "In Zeile 9 kann nur noch Hosen stehen – also auf C9.",
+      "Johann stand im Schnee, weiter links als Trilling – von den passenden Feldern ist nur noch D6 frei.",
+      "Übrig bleibt E8: Dort war die Ovomaltine. Auf der blauen Piste war sonst nur Johann – also: Johann hat die Ovomaltine geklaut!"
+    ]
+  }
+]

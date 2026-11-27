@@ -431,6 +431,19 @@ h3 { font-family: var(--titel), monospace; font-weight: 400; font-size: 11pt;
 .ok { color: #2f6b2f; font-weight: 600; }
 .nein { color: #b3261e; font-weight: 600; }   /* feste Signalfarbe, unabhängig vom Fall-Stil */
 
+/* dichter Satz für volle Seiten (setzt werkzeuge/pdf.cjs bei Bedarf) */
+.fall.eng .intro { font-size: 11.3pt; line-height: 1.3; }
+.fall.eng .legende { grid-template-columns: repeat(5, 1fr); font-size: 10.3pt; gap: .4mm 2.5mm; }
+.fall.eng .legende .icon { width: 6.3mm; height: 6.3mm; }
+.fall.eng .legende li { grid-template-columns: 6.3mm 1fr auto; gap: 1.2mm; }
+.fall.eng .legende li.bereich { grid-template-columns: 6.3mm 1fr; }
+.fall.eng .hinweise li { margin-bottom: .7mm; }
+.fall.eng .urteil { margin-top: 3mm; }
+.fall.eng .personen { columns: 2; column-gap: 3mm; }
+.fall.eng .personen li { break-inside: avoid; margin-bottom: 1mm; }
+.fall.enger .intro { font-size: 10.6pt; }
+.fall.enger .hinweise { font-size: 11.5pt; }
+.fall.enger .hinweise li { margin-bottom: .3mm; }
 .hinweise { list-style: none; margin: 0; padding: 0; }
 .hinweise li { display: flex; align-items: center; gap: 3mm; margin-bottom: 1.3mm; }
 .urteil { margin-top: 5mm; display: flex;

@@ -363,8 +363,10 @@ class Logik:
             return f"Für {name} ist nur noch {feld} frei."
         if art == "binaer":
             h, anderer = g[1], g[2]
-            return (f"{_ohne_punkt(h.text(f))} – da {self.name(anderer)} schon feststeht, "
-                    f"bleibt für {name} nur {feld}.")
+            if anderer in self.gemeldet:
+                return (f"{_ohne_punkt(h.text(f))} – da {self.name(anderer)} schon feststeht, "
+                        f"bleibt für {name} nur {feld}.")
+            return f"{_ohne_punkt(h.text(f))} – damit bleibt für {name} nur {feld}."
         if art == "einzig":
             return f"In {_linie(g[1], g[2])} kann nur noch {name} stehen – also auf {feld}."
         if art == "hall":
