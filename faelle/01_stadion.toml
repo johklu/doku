@@ -1,0 +1,84 @@
+# Fall 01 – RheinEnergieStadion
+#
+# plan:     ein Buchstabe pro Feld = Bereich (siehe Tabelle "bereiche" unten)
+# objekte:  ein Kürzel pro Feld, ".." = frei; Kürzel siehe krimi/katalog.py
+#   besetzbar: Si Sitz · Se Sessel · Ba Bank · Du Dusche · Bl Ball
+#   blockiert: Ti Tisch · Pf Pflanze · Bu Buffet · Sp Spind · To Tor
+#              Ka Kamera · Kö Kölschstand
+# personen: "bereich" = wo die Person laut LÖSUNG war (wird nicht verraten,
+#           sondern aus den Hinweisen erschlossen)
+#
+# Achtung TOML: alle einfachen Einträge müssen VOR der ersten [Tabelle] stehen.
+
+nummer = 1
+titel = "Abpfiff in Müngersdorf"
+ort = "RheinEnergieStadion, Köln"
+schwierigkeit = "mittel"   # leicht | mittel | schwer
+seed = 11                  # anderer Wert = anderes Rätsel mit gleichem Plan
+
+intro = """
+Samstag, kurz nach Abpfiff. Der FC hat das Derby gewonnen, die Südkurve singt
+noch – da geht ein Schrei durch die Katakomben: Okon-Engstler wurde tot im
+Stadion aufgefunden. Sieben Personen waren zur Tatzeit noch im Stadion.
+Wer hatte Gelegenheit, mit Okon-Engstler allein zu sein?
+"""
+
+plan = """
+TTTTTTTT
+TTTVVVTT
+TTTVVVTT
+TFFFFFFT
+TFFFFFFT
+KKFFFFFT
+KKKFFFFT
+KKKTTTTT
+"""
+
+objekte = """
+Si Si Ka Si Si .. Si Si
+Si .. Si Se Ti Se Si Kö
+Si Si .. Pf Se Bu .. Si
+.. .. .. .. .. .. .. Si
+Si To .. .. .. .. To Ka
+Sp Ba .. Bl .. .. .. Si
+Du Ba Sp .. .. .. .. ..
+Sp .. Ba Si Si Kö Si Si
+"""
+
+[bereiche]
+T = { name = "Tribüne",   praep = "auf der Tribüne",   farbe = "#f3d3cd" }
+V = { name = "VIP-Loge",  praep = "in der VIP-Loge",   farbe = "#f0e0ae" }
+K = { name = "Kabine",    praep = "in der Kabine",     farbe = "#d3e0ee" }
+F = { name = "Spielfeld", praep = "auf dem Spielfeld", farbe = "#cde5bf", streifen = true }
+
+[[personen]]
+name = "Leah"
+bereich = "T"
+
+[[personen]]
+name = "Carli"
+bereich = "T"
+
+[[personen]]
+name = "Stephan"
+bereich = "T"
+
+[[personen]]
+name = "Thomas"
+bereich = "V"
+
+[[personen]]
+name = "René"
+bereich = "K"
+
+[[personen]]
+name = "Ragnar"
+bereich = "F"
+
+[[personen]]
+name = "Timo"
+bereich = "V"
+
+[opfer]
+name = "Okon-Engstler"
+bereich = "K"
