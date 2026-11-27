@@ -174,6 +174,7 @@ details.eigener .zeile { margin-top: 8px; }
       <section class="schritt">
         <h2><span class="nr">4</span> Geschichte</h2>
         <div class="zeile">
+          <label style="flex:0 0 80px">Fall-Nr.<input type="number" id="nummer" min="1" max="99"></label>
           <label>Titel<input type="text" id="titel"></label>
           <label>Ort<input type="text" id="ort"></label>
         </div>
@@ -196,7 +197,7 @@ details.eigener .zeile { margin-top: 8px; }
           <span class="status" id="kopier-status" role="status"></span>
         </div>
         <div class="knoepfe" style="margin-top:14px">
-          <button id="beispiel" class="klein">Stadion-Beispiel laden</button>
+          <button id="beispiel" class="klein">Beispiel ansehen (Stadion, Fall 1)</button>
           <button id="leeren" class="klein gefahr">Neuen leeren Plan beginnen</button>
           <span id="leeren-frage" hidden>Wirklich? Der aktuelle Plan geht verloren. <button id="leeren-ja" class="klein gefahr">Ja, leeren</button> <button id="leeren-nein" class="klein">Abbrechen</button></span>
         </div>
@@ -207,12 +208,12 @@ details.eigener .zeile { margin-top: 8px; }
 
 <script>
 const KATALOG = [{"k": "Si", "name": "Sitz", "besetzbar": true, "icon": "<path class=\"f\" d=\"M31 16h38a7 7 0 0 1 7 7v31H24V23a7 7 0 0 1 7-7z\"/> <path class=\"f\" d=\"M16 54h68v11a5 5 0 0 1-5 5H21a5 5 0 0 1-5-5z\"/> <path d=\"M28 70v16M72 70v16\"/>"}, {"k": "Se", "name": "Sessel", "besetzbar": true, "icon": "<path class=\"f\" d=\"M27 18h46a7 7 0 0 1 7 7v27H20V25a7 7 0 0 1 7-7z\"/> <rect class=\"f\" x=\"9\" y=\"42\" width=\"18\" height=\"34\" rx=\"7\"/> <rect class=\"f\" x=\"73\" y=\"42\" width=\"18\" height=\"34\" rx=\"7\"/> <rect class=\"f\" x=\"27\" y=\"54\" width=\"46\" height=\"22\" rx=\"4\"/> <path d=\"M18 76v10M82 76v10\"/>"}, {"k": "Ba", "name": "Bank", "besetzbar": true, "icon": "<rect class=\"f\" x=\"6\" y=\"40\" width=\"88\" height=\"13\" rx=\"3\"/> <rect class=\"f\" x=\"6\" y=\"22\" width=\"88\" height=\"10\" rx=\"3\"/> <path d=\"M14 32v8M86 32v8M18 53v28M82 53v28M12 81h12M76 81h12\"/>"}, {"k": "Du", "name": "Dusche", "besetzbar": true, "icon": "<path d=\"M20 90V24a12 12 0 0 1 12-12h16a12 12 0 0 1 12 12v8\"/> <path class=\"f\" d=\"M44 32h32l-5 9H49z\"/> <path d=\"M51 50l-3 9M60 50v9M69 50l3 9M47 66l-3 9M60 66v9M73 66l3 9\"/>"}, {"k": "Bl", "name": "Ball", "besetzbar": true, "icon": "<circle class=\"f\" cx=\"50\" cy=\"50\" r=\"34\"/> <path class=\"k\" d=\"M50 37l12.4 9-4.7 14.6H42.3L37.6 46z\"/> <path d=\"M50 37V16M62.4 46l19.5-6.3M57.7 60.6l12 16.6M42.3 60.6l-12 16.6M37.6 46l-19.5-6.3\"/>"}, {"k": "St", "name": "Stuhl", "besetzbar": true, "icon": "<rect class=\"f\" x=\"26\" y=\"10\" width=\"13\" height=\"50\" rx=\"3\"/> <rect class=\"f\" x=\"26\" y=\"50\" width=\"50\" height=\"11\" rx=\"3\"/> <path d=\"M31 61v28M71 61v28\"/>"}, {"k": "So", "name": "Sofa", "besetzbar": true, "icon": "<rect class=\"f\" x=\"12\" y=\"24\" width=\"76\" height=\"30\" rx=\"7\"/> <rect class=\"f\" x=\"4\" y=\"42\" width=\"17\" height=\"32\" rx=\"7\"/> <rect class=\"f\" x=\"79\" y=\"42\" width=\"17\" height=\"32\" rx=\"7\"/> <rect class=\"f\" x=\"21\" y=\"54\" width=\"29\" height=\"20\" rx=\"3\"/> <rect class=\"f\" x=\"50\" y=\"54\" width=\"29\" height=\"20\" rx=\"3\"/> <path d=\"M14 74v12M86 74v12\"/>"}, {"k": "Be", "name": "Bett", "besetzbar": true, "icon": "<rect class=\"f\" x=\"18\" y=\"6\" width=\"64\" height=\"88\" rx=\"6\"/> <rect class=\"f\" x=\"28\" y=\"13\" width=\"44\" height=\"17\" rx=\"6\"/> <path d=\"M18 40h64M18 50h64\"/>"}, {"k": "Te", "name": "Teppich", "besetzbar": true, "icon": "<rect class=\"f\" x=\"12\" y=\"20\" width=\"76\" height=\"60\" rx=\"2\"/> <rect x=\"22\" y=\"30\" width=\"56\" height=\"40\" rx=\"2\"/> <path d=\"M4 28h8M4 40h8M4 52h8M4 64h8M4 76h0M88 28h8M88 40h8M88 52h8M88 64h8\"/> <path d=\"M50 38l10 12-10 12-10-12z\"/>"}, {"k": "Bw", "name": "Badewanne", "besetzbar": true, "icon": "<path class=\"f\" d=\"M6 44h88v10a26 26 0 0 1-26 26H32A26 26 0 0 1 6 54z\"/> <path d=\"M82 44V22a8 8 0 0 0-16 0\"/> <path d=\"M24 80l-5 10M76 80l5 10\"/>"}, {"k": "Ti", "name": "Tisch", "besetzbar": false, "icon": "<rect class=\"k\" x=\"8\" y=\"32\" width=\"84\" height=\"12\" rx=\"3\"/> <path d=\"M18 44v42M82 44v42M30 44l-6 20M70 44l6 20\"/>"}, {"k": "Pf", "name": "Pflanze", "besetzbar": false, "icon": "<path class=\"k\" d=\"M33 64h34l-6 24H39z\"/> <path d=\"M50 64V30\"/> <path class=\"k\" d=\"M50 50C37 49 27 39 24 24c15 2 24 12 26 26z\"/> <path class=\"k\" d=\"M50 42c13-1 23-11 26-26-15 2-24 12-26 26z\"/> <path class=\"k\" d=\"M50 60c-10 0-18-5-22-13 11-1 19 5 22 13z\"/>"}, {"k": "Bu", "name": "Buffet", "besetzbar": false, "icon": "<path class=\"k\" d=\"M20 66a30 30 0 0 1 60 0z\"/> <circle class=\"k\" cx=\"50\" cy=\"31\" r=\"5\"/> <path d=\"M10 66h80M16 76h68\"/>"}, {"k": "Sp", "name": "Spind", "besetzbar": false, "icon": "<rect class=\"k\" x=\"27\" y=\"8\" width=\"46\" height=\"84\" rx=\"3\"/> <path class=\"w\" d=\"M36 20h28M36 27h28M36 34h28M63 52v12\"/>"}, {"k": "To", "name": "Tor", "besetzbar": false, "icon": "<path d=\"M10 84V20h80v64\" stroke-width=\"7\"/> <path class=\"n\" d=\"M10 20l12 12h56l12-12M22 32v52M78 32v52M36 32v52M50 32v52M64 32v52M22 47h56M22 62h56M22 77h56\"/>"}, {"k": "Ka", "name": "Kamera", "besetzbar": false, "icon": "<rect class=\"k\" x=\"14\" y=\"26\" width=\"48\" height=\"30\" rx=\"4\"/> <path class=\"k\" d=\"M62 33l22-9v34l-22-9z\"/> <rect class=\"k\" x=\"20\" y=\"15\" width=\"16\" height=\"11\" rx=\"2\"/> <path d=\"M38 56L22 90M38 56v34M38 56l16 34\"/>"}, {"k": "Kö", "name": "Kölschstand", "besetzbar": false, "icon": "<path class=\"k\" d=\"M10 34L20 12h60l10 22z\"/> <path class=\"w\" d=\"M30 13l-4 20M50 13v20M70 13l4 20\"/> <path d=\"M10 34c0 7 10 7 10 0c0 7 10 7 10 0c0 7 10 7 10 0c0 7 10 7 10 0c0 7 10 7 10 0c0 7 10 7 10 0c0 7 10 7 10 0c0 7 10 7 10 0\"/> <rect class=\"k\" x=\"14\" y=\"58\" width=\"72\" height=\"30\" rx=\"2\"/> <path d=\"M22 41v17M78 41v17\"/> <path class=\"f\" d=\"M44 36h12v20H44z\"/>"}, {"k": "Sr", "name": "Schrank", "besetzbar": false, "icon": "<rect class=\"k\" x=\"16\" y=\"6\" width=\"68\" height=\"84\" rx=\"3\"/> <path class=\"w\" d=\"M50 6v84\"/> <path class=\"w\" d=\"M43 44v10M57 44v10\"/> <path d=\"M22 90v6M78 90v6\"/>"}, {"k": "Km", "name": "Kamin", "besetzbar": false, "icon": "<rect class=\"k\" x=\"12\" y=\"18\" width=\"76\" height=\"72\"/> <rect class=\"k\" x=\"4\" y=\"10\" width=\"92\" height=\"10\" rx=\"2\"/> <path class=\"w\" d=\"M28 90V58a22 22 0 0 1 44 0v32\"/> <path class=\"f\" d=\"M50 86c-11 0-15-9-10-17 2 5 6 5 6 1 0-7 4-11 9-15 0 7 8 11 8 20 0 7-6 11-13 11z\"/>"}, {"k": "Wb", "name": "Weihnachtsbaum", "besetzbar": false, "icon": "<path class=\"k\" d=\"M50 6L26 38h11L19 62h15L11 86h78L66 62h15L63 38h11z\"/> <rect class=\"k\" x=\"43\" y=\"86\" width=\"14\" height=\"10\"/> <circle class=\"w\" cx=\"42\" cy=\"50\" r=\"3\"/><circle class=\"w\" cx=\"60\" cy=\"70\" r=\"3\"/> <circle class=\"w\" cx=\"36\" cy=\"76\" r=\"3\"/><circle class=\"w\" cx=\"56\" cy=\"32\" r=\"3\"/>"}, {"k": "He", "name": "Herd", "besetzbar": false, "icon": "<rect class=\"k\" x=\"10\" y=\"10\" width=\"80\" height=\"80\" rx=\"4\"/> <circle class=\"w\" cx=\"32\" cy=\"32\" r=\"11\"/><circle class=\"w\" cx=\"68\" cy=\"32\" r=\"11\"/> <circle class=\"w\" cx=\"32\" cy=\"68\" r=\"11\"/><circle class=\"w\" cx=\"68\" cy=\"68\" r=\"11\"/>"}, {"k": "Fe", "name": "Fernseher", "besetzbar": false, "icon": "<rect class=\"k\" x=\"6\" y=\"14\" width=\"88\" height=\"58\" rx=\"4\"/> <rect class=\"f\" x=\"14\" y=\"22\" width=\"72\" height=\"42\" rx=\"2\"/> <path d=\"M50 72v12M30 88h40\"/>"}];
-const BEISPIEL = {"n": 8, "titel": "Abpfiff in Müngersdorf", "ort": "RheinEnergieStadion, Köln", "frage": "Wer hat Okon-Engstler mit Kölsch beworfen?", "tat": "hat Okon-Engstler mit Kölsch beworfen", "intro": "Samstag, kurz nach Abpfiff. Der FC hat das Derby gewonnen, die Südkurve singt noch – da steht Okon-Engstler plötzlich klatschnass da und riecht verdächtig nach Kölsch. Irgendjemand hat einen vollen Becher geworfen! Sieben Personen waren zu diesem Zeitpunkt noch im Stadion.", "schwierigkeit": "mittel", "bereiche": [{"k": "T", "name": "Tribüne", "praep": "auf der Tribüne", "farbe": "#f3d3cd"}, {"k": "V", "name": "VIP-Loge", "praep": "in der VIP-Loge", "farbe": "#f0e0ae"}, {"k": "K", "name": "Kabine", "praep": "in der Kabine", "farbe": "#d3e0ee"}, {"k": "F", "name": "Spielfeld", "praep": "auf dem Spielfeld", "farbe": "#cde5bf"}], "plan": ["TTTTTTTT", "TTVVVVTT", "TTVVVVTT", "TTFFFFTT", "TTFFFFTT", "KKFFFFTT", "KKTTTTTT", "KKTTTTTT"], "objekte": [["Si", "Si", "Ka", "Si", "Si", "Si", null, "Si"], ["Si", null, "Se", "Ti", "Ti", "Se", "Si", "Kö"], [null, "Si", "Pf", "Se", "Se", "Bu", "Si", "Si"], ["Si", "Si", null, null, null, null, null, "Si"], ["Si", "Ka", "To", null, "Bl", "To", "Si", null], ["Sp", "Ba", null, null, null, null, "Si", "Si"], ["Du", "Ba", "Si", "Si", "Kö", "Si", null, "Si"], ["Sp", null, "Si", null, "Si", "Si", "Si", "Ka"]], "personen": [{"name": "Leah", "bereich": "T"}, {"name": "Carli", "bereich": "T"}, {"name": "Stephan", "bereich": "T"}, {"name": "Thomas", "bereich": "V"}, {"name": "René", "bereich": "K"}, {"name": "Ragnar", "bereich": "F"}, {"name": "Timo", "bereich": "V"}], "opfer": {"name": "Okon-Engstler", "bereich": "K"}, "eigene": []};
+const BEISPIEL = {"n": 8, "nummer": 1, "titel": "Abpfiff in Müngersdorf", "ort": "RheinEnergieStadion, Köln", "frage": "Wer hat Okon-Engstler mit Kölsch beworfen?", "tat": "hat Okon-Engstler mit Kölsch beworfen", "intro": "Samstag, kurz nach Abpfiff. Der FC hat das Derby gewonnen, die Südkurve singt noch – da steht Okon-Engstler plötzlich klatschnass da und riecht verdächtig nach Kölsch. Irgendjemand hat einen vollen Becher geworfen! Sieben Personen waren zu diesem Zeitpunkt noch im Stadion.", "schwierigkeit": "mittel", "bereiche": [{"k": "T", "name": "Tribüne", "praep": "auf der Tribüne", "farbe": "#f3d3cd"}, {"k": "V", "name": "VIP-Loge", "praep": "in der VIP-Loge", "farbe": "#f0e0ae"}, {"k": "K", "name": "Kabine", "praep": "in der Kabine", "farbe": "#d3e0ee"}, {"k": "F", "name": "Spielfeld", "praep": "auf dem Spielfeld", "farbe": "#cde5bf"}], "plan": ["TTTTTTTT", "TTVVVVTT", "TTVVVVTT", "TTFFFFTT", "TTFFFFTT", "KKFFFFTT", "KKTTTTTT", "KKTTTTTT"], "objekte": [["Si", "Si", "Ka", "Si", "Si", "Si", null, "Si"], ["Si", null, "Se", "Ti", "Ti", "Se", "Si", "Kö"], [null, "Si", "Pf", "Se", "Se", "Bu", "Si", "Si"], ["Si", "Si", null, null, null, null, null, "Si"], ["Si", "Ka", "To", null, "Bl", "To", "Si", null], ["Sp", "Ba", null, null, null, null, "Si", "Si"], ["Du", "Ba", "Si", "Si", "Kö", "Si", null, "Si"], ["Sp", null, "Si", null, "Si", "Si", "Si", "Ka"]], "personen": [{"name": "Leah", "bereich": "T"}, {"name": "Carli", "bereich": "T"}, {"name": "Stephan", "bereich": "T"}, {"name": "Thomas", "bereich": "V"}, {"name": "René", "bereich": "K"}, {"name": "Ragnar", "bereich": "F"}, {"name": "Timo", "bereich": "V"}], "opfer": {"name": "Okon-Engstler", "bereich": "K"}, "eigene": []};
 const FARBEN = ["#f3d3cd", "#f0e0ae", "#d3e0ee", "#cde5bf", "#e2d4ef", "#f6dcc0", "#cfeae6", "#e9e2d2", "#f2cfe0"];
 const BUCHST = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const SPALTEN = "ABCDEFGHI";
 const ZELLE = 100, RAND = 56;
-const SPEICHER = "grundriss-werkstatt-v1";
+const SPEICHER = "grundriss-werkstatt-v2";
 
 let S;                         // Zustand
 let werkzeug = null;           // {art:'bereich'|'objekt'|'radierer', k}
@@ -224,7 +225,7 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt
 function klon(o) { return JSON.parse(JSON.stringify(o)); }
 function leer(n) {
   return {
-    n, titel: "", ort: "", frage: "", tat: "", intro: "", schwierigkeit: "mittel",
+    n, nummer: 2, titel: "", ort: "", frage: "", tat: "", intro: "", schwierigkeit: "mittel",
     bereiche: [{k: "A", name: "Raum 1", praep: "im Raum 1", farbe: FARBEN[0], auto: true}],
     plan: Array.from({length: n}, () => Array(n).fill("A")),
     objekte: Array.from({length: n}, () => Array(n).fill(null)),
@@ -242,7 +243,7 @@ function ausBeispiel() {
 }
 function laden() {
   try { const t = localStorage.getItem(SPEICHER); if (t) { const s = JSON.parse(t); if (s && s.plan) return s; } } catch (e) {}
-  return ausBeispiel();
+  return leer(8);
 }
 function speichern() { try { localStorage.setItem(SPEICHER, JSON.stringify(S)); } catch (e) {} }
 
@@ -426,8 +427,9 @@ function zeichnePersonen() {
 }
 
 // ---------- 4 Geschichte ----------
-const FELDER = ["titel", "ort", "frage", "tat", "intro", "schwierigkeit"];
-function zeichneGeschichte() { FELDER.forEach((f) => ($(f).value = S[f] || (f === "schwierigkeit" ? "mittel" : ""))); }
+const FELDER = ["nummer", "titel", "ort", "frage", "tat", "intro", "schwierigkeit"];
+const VORGABE = {schwierigkeit: "mittel", nummer: 2};
+function zeichneGeschichte() { FELDER.forEach((f) => ($(f).value = S[f] || VORGABE[f] || "")); }
 FELDER.forEach((f) => ($(f).oninput = $(f).onchange = (e) => { S[f] = e.target.value; allesAusser("geschichte"); }));
 
 // ---------- Größe ----------
@@ -512,7 +514,7 @@ function q(s) { return '"' + String(s).replace(/\\/g, "\\\\").replace(/"/g, '\\"
 function exportText() {
   const L = [];
   L.push(`# Fall aus der Grundriss-Werkstatt`);
-  L.push(`nummer = 0`);
+  L.push(`nummer = ${parseInt(S.nummer, 10) || 2}`);
   L.push(`titel = ${q(S.titel || "Ohne Titel")}`);
   L.push(`ort = ${q(S.ort)}`);
   L.push(`schwierigkeit = ${q(S.schwierigkeit || "mittel")}`);
@@ -563,5 +565,6 @@ function alles() {
 }
 
 S = laden();
+if (!S.titel && S.bereiche.length === 1) werkzeug = {art: "bereich", k: S.bereiche[0].k};
 alles();
 </script>

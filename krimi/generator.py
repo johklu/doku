@@ -43,6 +43,11 @@ class Raetsel:
     hinweise: list[Hinweis]
     proben: int
     schritte: list[str] = field(default_factory=list)
+    texte: dict[int, str] = field(default_factory=dict)   # eingefrorene Hinweistexte
+
+    def text(self, h: Hinweis) -> str:
+        """Hinweistext – bei eingefrorenen Rätseln exakt der abgenommene Satz."""
+        return self.texte.get(id(h)) or h.text(self.fall)
 
     @property
     def taeter(self) -> int:

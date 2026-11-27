@@ -215,7 +215,7 @@ def _seite_fall(r: Raetsel) -> str:
         f'{"✓" if kat[k].besetzbar else "✕"}</span></li>' for k in arten)
 
     hinweise_html = "".join(
-        f"<li>{_chip(f.personen[h.subjekt])}<span>{_e(h.text(f))}</span></li>"
+        f"<li>{_chip(f.personen[h.subjekt])}<span>{_e(r.text(h))}</span></li>"
         for h in sorted(r.hinweise, key=lambda h: h.subjekt))
 
     return f"""

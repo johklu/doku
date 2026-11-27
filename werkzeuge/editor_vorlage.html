@@ -174,6 +174,7 @@ details.eigener .zeile { margin-top: 8px; }
       <section class="schritt">
         <h2><span class="nr">4</span> Geschichte</h2>
         <div class="zeile">
+          <label style="flex:0 0 80px">Fall-Nr.<input type="number" id="nummer" min="1" max="99"></label>
           <label>Titel<input type="text" id="titel"></label>
           <label>Ort<input type="text" id="ort"></label>
         </div>
@@ -196,7 +197,7 @@ details.eigener .zeile { margin-top: 8px; }
           <span class="status" id="kopier-status" role="status"></span>
         </div>
         <div class="knoepfe" style="margin-top:14px">
-          <button id="beispiel" class="klein">Stadion-Beispiel laden</button>
+          <button id="beispiel" class="klein">Beispiel ansehen (Stadion, Fall 1)</button>
           <button id="leeren" class="klein gefahr">Neuen leeren Plan beginnen</button>
           <span id="leeren-frage" hidden>Wirklich? Der aktuelle Plan geht verloren. <button id="leeren-ja" class="klein gefahr">Ja, leeren</button> <button id="leeren-nein" class="klein">Abbrechen</button></span>
         </div>
@@ -212,7 +213,7 @@ const FARBEN = ["#f3d3cd", "#f0e0ae", "#d3e0ee", "#cde5bf", "#e2d4ef", "#f6dcc0"
 const BUCHST = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const SPALTEN = "ABCDEFGHI";
 const ZELLE = 100, RAND = 56;
-const SPEICHER = "grundriss-werkstatt-v1";
+const SPEICHER = "grundriss-werkstatt-v2";
 
 let S;                         // Zustand
 let werkzeug = null;           // {art:'bereich'|'objekt'|'radierer', k}
@@ -224,7 +225,7 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt
 function klon(o) { return JSON.parse(JSON.stringify(o)); }
 function leer(n) {
   return {
-    n, titel: "", ort: "", frage: "", tat: "", intro: "", schwierigkeit: "mittel",
+    n, nummer: 2, titel: "", ort: "", frage: "", tat: "", intro: "", schwierigkeit: "mittel",
     bereiche: [{k: "A", name: "Raum 1", praep: "im Raum 1", farbe: FARBEN[0], auto: true}],
     plan: Array.from({length: n}, () => Array(n).fill("A")),
     objekte: Array.from({length: n}, () => Array(n).fill(null)),
@@ -242,7 +243,7 @@ function ausBeispiel() {
 }
 function laden() {
   try { const t = localStorage.getItem(SPEICHER); if (t) { const s = JSON.parse(t); if (s && s.plan) return s; } } catch (e) {}
-  return ausBeispiel();
+  return leer(8);
 }
 function speichern() { try { localStorage.setItem(SPEICHER, JSON.stringify(S)); } catch (e) {} }
 
@@ -426,8 +427,9 @@ function zeichnePersonen() {
 }
 
 // ---------- 4 Geschichte ----------
-const FELDER = ["titel", "ort", "frage", "tat", "intro", "schwierigkeit"];
-function zeichneGeschichte() { FELDER.forEach((f) => ($(f).value = S[f] || (f === "schwierigkeit" ? "mittel" : ""))); }
+const FELDER = ["nummer", "titel", "ort", "frage", "tat", "intro", "schwierigkeit"];
+const VORGABE = {schwierigkeit: "mittel", nummer: 2};
+function zeichneGeschichte() { FELDER.forEach((f) => ($(f).value = S[f] || VORGABE[f] || "")); }
 FELDER.forEach((f) => ($(f).oninput = $(f).onchange = (e) => { S[f] = e.target.value; allesAusser("geschichte"); }));
 
 // ---------- Größe ----------
@@ -512,7 +514,7 @@ function q(s) { return '"' + String(s).replace(/\\/g, "\\\\").replace(/"/g, '\\"
 function exportText() {
   const L = [];
   L.push(`# Fall aus der Grundriss-Werkstatt`);
-  L.push(`nummer = 0`);
+  L.push(`nummer = ${parseInt(S.nummer, 10) || 2}`);
   L.push(`titel = ${q(S.titel || "Ohne Titel")}`);
   L.push(`ort = ${q(S.ort)}`);
   L.push(`schwierigkeit = ${q(S.schwierigkeit || "mittel")}`);
@@ -563,5 +565,6 @@ function alles() {
 }
 
 S = laden();
+if (!S.titel && S.bereiche.length === 1) werkzeug = {art: "bereich", k: S.bereiche[0].k};
 alles();
 </script>

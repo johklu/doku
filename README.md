@@ -22,6 +22,19 @@ python3 baue.py faelle/*.toml -o ausgabe/buch.pdf
 
 Voraussetzungen: Python ≥ 3.11 und Node mit Playwright/Chromium (für den PDF-Export).
 
+## Rätsel abnehmen (einfrieren)
+
+```bash
+python3 baue.py faelle/01_stadion.toml --speichern
+```
+
+legt `faelle/01_stadion.raetsel.json` an: Lösung, Hinweise und Lösungsweg
+genau so, wie sie abgenommen wurden. Danach wird der Fall nie mehr neu
+erzeugt, sondern beim Bauen nur geprüft (gilt jeder Hinweis, ist die Lösung
+eindeutig?). Neu würfeln: Datei löschen oder `--neu`.
+
+Abgenommen: Fall 01 „Abpfiff in Müngersdorf“.
+
 ## Einen neuen Fall anlegen
 
 Am einfachsten mit der **Grundriss-Werkstatt** (`editor/grundriss-werkstatt.html`,

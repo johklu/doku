@@ -27,7 +27,7 @@ def main():
 
     f = lade_fall(WURZEL / "faelle" / "01_stadion.toml")
     beispiel = {
-        "n": f.n, "titel": f.titel, "ort": f.ort, "frage": f.frage, "tat": f.tat,
+        "n": f.n, "nummer": f.nummer, "titel": f.titel, "ort": f.ort, "frage": f.frage, "tat": f.tat,
         "intro": " ".join(f.intro.split()), "schwierigkeit": f.schwierigkeit,
         "bereiche": [{"k": b.kuerzel, "name": b.name, "praep": b.praep, "farbe": b.farbe}
                      for b in f.bereiche.values()],

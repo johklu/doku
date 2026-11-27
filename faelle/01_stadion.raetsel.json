@@ -1,0 +1,87 @@
+{
+  "fall": "01_stadion.toml",
+  "titel": "Abpfiff in Müngersdorf",
+  "gespeichert": "2026-11-27",
+  "uebeltaeter": "René",
+  "loesung": {
+    "Leah": "H4",
+    "Carli": "F1",
+    "Stephan": "G8",
+    "Thomas": "D3",
+    "René": "B6",
+    "Ragnar": "E5",
+    "Timo": "C2",
+    "Okon-Engstler": "A7"
+  },
+  "proben": 1,
+  "hinweise": [
+    {
+      "typ": "Kombi",
+      "a": {
+        "typ": "AufObjekt",
+        "p": "Leah",
+        "k": "Si"
+      },
+      "b": {
+        "typ": "NichtNebenObjekt",
+        "p": "Leah",
+        "k": "Ka"
+      },
+      "text": "Leah saß auf einem Sitz, aber nicht neben einer Kamera."
+    },
+    {
+      "typ": "Links",
+      "p": "Carli",
+      "q": "Leah",
+      "umgekehrt": false,
+      "text": "Carli befand sich weiter links als Leah."
+    },
+    {
+      "typ": "NebenObjekt",
+      "p": "Stephan",
+      "k": "Ka",
+      "text": "Stephan befand sich direkt neben einer Kamera."
+    },
+    {
+      "typ": "NebenObjekt",
+      "p": "Thomas",
+      "k": "Se",
+      "text": "Thomas befand sich direkt neben einem Sessel."
+    },
+    {
+      "typ": "AufObjekt",
+      "p": "René",
+      "k": "Ba",
+      "text": "René saß auf einer Bank."
+    },
+    {
+      "typ": "Allein",
+      "p": "Ragnar",
+      "text": "Ragnar hatte den ganzen Bereich für sich allein."
+    },
+    {
+      "typ": "Schraeg",
+      "p": "Timo",
+      "q": "Thomas",
+      "text": "Timo und Thomas befanden sich schräg nebeneinander."
+    }
+  ],
+  "loesungsweg": [
+    "Thomas befand sich direkt neben einem Sessel – das geht nur auf D3 oder E3.",
+    "René saß auf einer Bank – das geht nur auf B6 oder B7.",
+    "Da Thomas sicher in Zeile 3 steht, ist Zeile 3 für alle anderen tabu.",
+    "Timo kommt nur noch in Zeile 2 in Frage (C2 oder F2) – für alle anderen ist Zeile 2 damit tabu.",
+    "Da René sicher in Spalte B steht, ist Spalte B für alle anderen tabu.",
+    "René saß auf einer Bank – von den passenden Feldern ist nur noch B6 frei.",
+    "Angenommen, Leah stünde auf H1. Daraus folgt Stephan auf G8 – und dann bliebe für Carli kein Feld mehr übrig. Also scheidet H1 für Leah aus.",
+    "Damit bleibt für Leah nur noch H4.",
+    "Ragnar kommt nur noch in Zeile 5 in Frage (D5 oder E5) – für alle anderen ist Zeile 5 damit tabu.",
+    "Thomas (D3 oder E3) und Ragnar (D5 oder E5) passen zusammen nur in die Spalten D und E – diese sind damit für alle anderen gesperrt.",
+    "Stephan befand sich direkt neben einer Kamera – da Spalte D und Spalte E gesperrt sind, bleibt nur G8.",
+    "Carli befand sich weiter links als Leah – von den passenden Feldern ist nur noch F1 frei.",
+    "Timo und Thomas befanden sich schräg nebeneinander – von den passenden Feldern ist nur noch C2 frei.",
+    "Timo und Thomas befanden sich schräg nebeneinander – da Timo schon feststeht, bleibt für Thomas nur D3.",
+    "Ragnar hatte den ganzen Bereich für sich allein – von den passenden Feldern ist nur noch E5 frei.",
+    "Übrig bleibt A7: Dort war Okon-Engstler. In der Kabine war sonst nur René – also: René hat Okon-Engstler mit Kölsch beworfen!"
+  ]
+}

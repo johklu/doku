@@ -16,6 +16,7 @@ import subprocess
 import sys
 from pathlib import Path
 
+from krimi import archiv
 from krimi.druck import buch_html
 from krimi.fall import lade_fall
 from krimi.generator import erzeuge
@@ -51,17 +52,27 @@ def main():
     ap.add_argument("-o", "--ausgabe", default=None, help="Ziel-PDF")
     ap.add_argument("--versuche", type=int, default=30, help="Generator-Versuche je Fall")
     ap.add_argument("--vorschau", action="store_true", help="zusätzlich PNG je Seite")
+    ap.add_argument("--speichern", action="store_true",
+                    help="Rätsel abnehmen: dauerhaft als faelle/<name>.raetsel.json einfrieren")
+    ap.add_argument("--neu", action="store_true",
+                    help="eingefrorenes Rätsel ignorieren und neu erzeugen")
     args = ap.parse_args()
 
     raetsel = []
     for pfad in args.faelle:
         fall = lade_fall(pfad)
         print(f"Fall {fall.nummer:02d}: {fall.titel}")
-        r = erzeuge_mit_cache(pfad, args.versuche)
+        if archiv.archiv_pfad(pfad).exists() and not args.neu:
+            r = archiv.lade(fall, pfad)
+            print(f"  (eingefroren: {archiv.archiv_pfad(pfad).name} – geprüft, eindeutig)")
+        else:
+            r = erzeuge_mit_cache(pfad, args.versuche)
+        if args.speichern:
+            print(f"  gespeichert als {archiv.speichere(r, pfad)}")
         print(f"  -> Übeltäter: {fall.personen[r.taeter].name}, "
               f"{len(r.hinweise)} Hinweise, {r.proben} Proben")
         for h in r.hinweise:
-            print(f"     - {h.text(fall)}")
+            print(f"     - {r.text(h)}")
         print("  Lösungsweg:")
         for i, s in enumerate(r.schritte, 1):
             print(f"     {i:2d}. {s}")
@@ -78,7 +89,7 @@ def main():
         "fall": r.fall.nummer, "titel": r.fall.titel,
         "taeter": r.fall.personen[r.taeter].name,
         "positionen": {r.fall.personen[p].name: r.fall.koordinate(z) for p, z in r.loesung.items()},
-        "hinweise": [h.text(r.fall) for h in r.hinweise],
+        "hinweise": [r.text(h) for h in r.hinweise],
         "proben": r.proben,
         "loesungsweg": r.schritte,
     } for r in raetsel]
