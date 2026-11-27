@@ -23,7 +23,9 @@ def _json(daten) -> str:
 
 def main():
     katalog = [{"k": o.kuerzel, "name": o.name, "besetzbar": o.besetzbar,
-                "icon": " ".join(o.icon.split())} for o in KATALOG.values()]
+                "icon": " ".join(o.icon.split()),
+                "icon2": " ".join(o.icon2.split()) if o.icon2 else None}
+               for o in KATALOG.values()]
 
     f = lade_fall(WURZEL / "faelle" / "01_stadion.toml")
     beispiel = {

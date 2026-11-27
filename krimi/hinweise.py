@@ -144,8 +144,7 @@ class NebenObjekt(Hinweis):
     def erlaubt(self, fall, p, z):
         if p != self.p:
             return True
-        return any(fall.objekt(nz) is not None and fall.objekt(nz).kuerzel == self.k
-                   for nz in fall.nachbarn_im_bereich(z))
+        return self.k in fall.arten_neben(z)
 
     def gilt(self, fall, pos):
         return self.erlaubt(fall, self.p, pos[self.p])
@@ -169,8 +168,7 @@ class NichtNebenObjekt(Hinweis):
     def erlaubt(self, fall, p, z):
         if p != self.p:
             return True
-        return not any(fall.objekt(nz) is not None and fall.objekt(nz).kuerzel == self.k
-                       for nz in fall.nachbarn_im_bereich(z))
+        return self.k not in fall.arten_neben(z)
 
     def gilt(self, fall, pos):
         return self.erlaubt(fall, self.p, pos[self.p])

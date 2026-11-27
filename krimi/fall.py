@@ -46,6 +46,10 @@ class Fall:
     schwierigkeit: str = "mittel"
     quelle: Path | None = None
     stil: dict = field(default_factory=dict)
+    # Gegenstands-Stücke: ein Stück belegt 1 oder 2 Felder.
+    # stueck_von[r][c] = Nummer des Stücks; stuecke[i] = (kuerzel, [zellen], richtung)
+    stueck_von: list[list[int | None]] = field(default_factory=list)
+    stuecke: list[tuple[str, list, str | None]] = field(default_factory=list)
     frage: str = ""      # "Wer hat Okon-Engstler mit Kölsch beworfen?"
     tat: str = ""        # "hat Okon-Engstler mit Kölsch beworfen"
     katalog: dict[str, Objekt] = field(default_factory=dict)
@@ -83,8 +87,15 @@ class Fall:
         return {z for z in self.zellen() if self.bereich(z) == b}
 
     def anzahl_objekt(self, kuerzel: str) -> int:
-        return sum(1 for z in self.zellen()
-                   if self.objekt(z) and self.objekt(z).kuerzel == kuerzel)
+        """Anzahl der Stücke (ein 2-Felder-Bett zählt als ein Bett)."""
+        return sum(1 for k, _, _ in self.stuecke if k == kuerzel)
+
+    def arten_neben(self, z: Zelle) -> set[str]:
+        """Gegenstandsarten direkt neben z im selben Bereich – ohne das Stück,
+        auf dem man selbst steht (die andere Hälfte des eigenen Betts zählt nicht)."""
+        eigenes = self.stueck_von[z[0]][z[1]]
+        return {self.objekt(nz).kuerzel for nz in self.nachbarn_im_bereich(z)
+                if self.objekt(nz) and self.stueck_von[nz[0]][nz[1]] != eigenes}
 
     @staticmethod
     def koordinate(z: Zelle) -> str:
@@ -126,18 +137,51 @@ def lade_fall(pfad: str | Path) -> Fall:
         katalog[k] = eigenes_objekt(k, v["name"], v.get("genus", "m"),
                                     v.get("besetzbar", False), v.get("verb", "stand auf"))
 
-    objekte: list[list[Objekt | None]] = []
-    for zeile in daten["objekte"].strip().splitlines():
-        teile = zeile.split()
-        if len(teile) != n:
-            raise ValueError(f"Objektzeile hat nicht {n} Einträge: {zeile!r}")
-        for t in teile:
-            if t != ".." and t not in katalog:
-                raise ValueError(f"Unbekannter Gegenstand '{t}'. Bitte in [gegenstaende] "
-                                 f"definieren oder Kürzel aus krimi/katalog.py nehmen.")
-        objekte.append([None if t == ".." else katalog[t] for t in teile])
-    if len(objekte) != n:
-        raise ValueError("Objekt-Raster hat falsche Zeilenzahl.")
+    # Schreibweise im Objekt-Raster:
+    #   "Be"          Bett auf einem Feld
+    #   "Be>" "Be<"   Bett über zwei Felder waagrecht (> zeigt zum Partner rechts)
+    #   "Bev" / "Be^" Bett über zwei Felder senkrecht (Partner darunter)
+    zeilen = [z.split() for z in daten["objekte"].strip().splitlines()]
+    if len(zeilen) != n or any(len(z) != n for z in zeilen):
+        raise ValueError(f"Das Objekt-Raster muss {n} Zeilen mit je {n} Einträgen haben.")
+    objekte: list[list[Objekt | None]] = [[None] * n for _ in range(n)]
+    stueck_von: list[list[int | None]] = [[None] * n for _ in range(n)]
+    stuecke: list[tuple[str, list, str | None]] = []
+    partner = {">": (0, 1, "<"), "v": (1, 0, "^")}
+    for r, zeile in enumerate(zeilen):
+        for c, tok in enumerate(zeile):
+            if tok == ".." or tok[-1] in "<^":
+                continue
+            basis, suffix = (tok[:-1], tok[-1]) if tok[-1] in ">v" and len(tok) == 3 else (tok, "")
+            if basis not in katalog:
+                raise ValueError(f"Unbekannter Gegenstand '{tok}' in {Fall.koordinate((r, c))}. "
+                                 f"Bitte in [gegenstaende] definieren oder Kürzel aus "
+                                 f"krimi/katalog.py nehmen.")
+            o = katalog[basis]
+            zellen = [(r, c)]
+            richtung = None
+            if suffix:
+                if o.icon2 is None:
+                    raise ValueError(f"{o.name} kann nicht zwei Felder groß sein "
+                                     f"({Fall.koordinate((r, c))}).")
+                dr, dc, gegen = partner[suffix]
+                rr, cc = r + dr, c + dc
+                if rr >= n or cc >= n or zeilen[rr][cc] != basis + gegen:
+                    raise ValueError(f"{o.name} in {Fall.koordinate((r, c))}: zweite Hälfte "
+                                     f"'{basis + gegen}' fehlt daneben.")
+                if plan[r][c] != plan[rr][cc]:
+                    raise ValueError(f"{o.name} in {Fall.koordinate((r, c))} liegt über zwei "
+                                     f"Bereichen – ein Gegenstand muss in einem Bereich liegen.")
+                zellen.append((rr, cc))
+                richtung = "h" if suffix == ">" else "v"
+            for zr, zc in zellen:
+                objekte[zr][zc] = o
+                stueck_von[zr][zc] = len(stuecke)
+            stuecke.append((basis, zellen, richtung))
+    for r, zeile in enumerate(zeilen):
+        for c, tok in enumerate(zeile):
+            if tok != ".." and tok[-1] in "<^" and len(tok) == 3 and stueck_von[r][c] is None:
+                raise ValueError(f"Halbes Stück '{tok}' in {Fall.koordinate((r, c))} ohne Anfang.")
 
     vergeben: set[str] = set()
     personen = []
@@ -169,4 +213,6 @@ def lade_fall(pfad: str | Path) -> Fall:
         frage=daten.get("frage", f"Wer war mit {o['name']} allein?"),
         tat=daten.get("tat", "war es"),
         katalog=katalog,
+        stueck_von=stueck_von,
+        stuecke=stuecke,
     )

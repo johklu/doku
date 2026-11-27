@@ -11,7 +11,7 @@ Neue Gegenstände für neue Schauplätze einfach unten in KATALOG ergänzen.
 
 from __future__ import annotations
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 
 
 @dataclass(frozen=True)
@@ -25,6 +25,7 @@ class Objekt:
     auf_best: str | None      # "saß auf dem Sitz"
     niemand: str | None       # "Kein Sitz war besetzt."
     icon: str
+    icon2: str | None = None  # breites Icon (200x100) -> darf 2 Felder groß sein
 
 
 def _o(kuerzel, name, besetzbar, dat_unbest, dat_best, auf_unbest=None,
@@ -158,6 +159,84 @@ _FERNSEHER = """
 <rect class="f" x="14" y="22" width="72" height="42" rx="2"/>
 <path d="M50 72v12M30 88h40"/>"""
 
+_KUEHLSCHRANK = """
+<rect class="k" x="24" y="4" width="52" height="90" rx="5"/>
+<path class="w" d="M24 36h52M64 14v14M64 46v18"/>"""
+
+_SCHREIBTISCH = """
+<rect class="k" x="4" y="40" width="92" height="9" rx="2"/>
+<rect class="k" x="58" y="49" width="32" height="40"/>
+<path class="w" d="M63 62h22M63 76h22"/>
+<path d="M12 49v40M22 40V24l14-8M36 16l6 6"/>"""
+
+_WASCHBECKEN = """
+<path class="k" d="M10 40h80c0 22-18 34-40 34S10 62 10 40z"/>
+<path d="M50 40V22h16v8"/>
+<rect class="k" x="43" y="74" width="14" height="20"/>"""
+
+_REGAL = """
+<path d="M14 4v92M86 4v92M14 30h72M14 56h72M14 82h72"/>
+<rect class="k" x="20" y="10" width="8" height="20"/><rect class="k" x="30" y="14" width="7" height="16"/>
+<rect class="k" x="40" y="8" width="9" height="22"/><rect class="k" x="56" y="38" width="8" height="18"/>
+<rect class="k" x="66" y="40" width="9" height="16"/><rect class="k" x="22" y="64" width="18" height="18"/>
+<rect class="k" x="64" y="62" width="8" height="20"/>"""
+
+_INKUBATOR = """
+<rect class="k" x="8" y="14" width="84" height="70" rx="6"/>
+<rect class="w" x="18" y="24" width="46" height="50" rx="3"/>
+<circle class="w" cx="78" cy="34" r="6"/>
+<path class="w" d="M72 54h12M72 64h12"/>
+<path d="M18 84v10M82 84v10"/>"""
+
+_MIKROSKOP = """
+<rect class="k" x="18" y="84" width="60" height="10" rx="2"/>
+<path d="M68 84V58a26 26 0 0 0-24-26"/>
+<path class="k" d="M30 8l12-5 16 40-12 5z"/>
+<path d="M26 66h40M46 48l2 16"/>
+<rect class="k" x="26" y="2" width="14" height="7" rx="2"/>"""
+
+_THEKE = """
+<rect class="k" x="2" y="34" width="96" height="9" rx="2"/>
+<rect class="k" x="8" y="43" width="84" height="49"/>
+<path class="w" d="M30 52v30M50 52v30M70 52v30"/>
+<path class="f" d="M70 14h12l-2 20h-8z"/>"""
+
+_FAHRRAD = """
+<circle cx="24" cy="66" r="18"/><circle cx="78" cy="66" r="18"/>
+<path d="M24 66l18-30h30l6 30M42 36l14 30h22M56 66L36 26M30 26h14M72 36l-4-12h10"/>
+<circle class="k" cx="56" cy="66" r="4"/>"""
+
+_TOILETTE = """
+<rect class="f" x="60" y="8" width="26" height="34" rx="4"/>
+<path class="f" d="M14 42h72v8c0 18-14 28-34 28h-6C24 78 14 66 14 50z"/>
+<path class="f" d="M34 76h28l4 16H30z"/>
+<path d="M14 42h50"/>"""
+
+# --- Breite Icons für Gegenstände über zwei Felder (200 x 100, waagrecht) ---
+
+_BETT2 = """
+<rect class="f" x="14" y="16" width="174" height="68" rx="8"/>
+<rect class="k" x="8" y="10" width="12" height="80" rx="3"/>
+<rect class="f" x="28" y="26" width="32" height="48" rx="9"/>
+<path d="M80 16v68M80 16l18 18v50"/>"""
+
+_SOFA2 = """
+<rect class="f" x="10" y="14" width="180" height="72" rx="10"/>
+<rect class="f" x="10" y="14" width="180" height="22" rx="8"/>
+<rect class="f" x="10" y="14" width="22" height="72" rx="8"/>
+<rect class="f" x="168" y="14" width="22" height="72" rx="8"/>
+<path d="M100 36v50"/>"""
+
+_TISCH2 = """
+<rect class="k" x="12" y="20" width="176" height="60" rx="6"/>
+<rect class="w" x="22" y="30" width="156" height="40" rx="3"/>"""
+
+_TEPPICH2 = """
+<rect class="f" x="18" y="16" width="164" height="68" rx="2"/>
+<rect x="30" y="28" width="140" height="44" rx="2"/>
+<path d="M72 50l14-14 14 14-14 14zM114 50l14-14 14 14-14 14z"/>
+<path d="M8 24h10M8 38h10M8 52h10M8 66h10M8 80h0M182 24h10M182 38h10M182 52h10M182 66h10"/>"""
+
 
 KATALOG: dict[str, Objekt] = {o.kuerzel: o for o in [
     # besetzbar
@@ -203,7 +282,23 @@ KATALOG: dict[str, Objekt] = {o.kuerzel: o for o in [
        icon=_WEIHNACHTSBAUM),
     _o("He", "Herd", False, "einem Herd", "dem Herd", icon=_HERD),
     _o("Fe", "Fernseher", False, "einem Fernseher", "dem Fernseher", icon=_FERNSEHER),
+    _o("Kü", "Kühlschrank", False, "einem Kühlschrank", "dem Kühlschrank", icon=_KUEHLSCHRANK),
+    _o("Sd", "Schreibtisch", False, "einem Schreibtisch", "dem Schreibtisch", icon=_SCHREIBTISCH),
+    _o("Wa", "Waschbecken", False, "einem Waschbecken", "dem Waschbecken", icon=_WASCHBECKEN),
+    _o("Rg", "Regal", False, "einem Regal", "dem Regal", icon=_REGAL),
+    _o("In", "Inkubator", False, "einem Inkubator", "dem Inkubator", icon=_INKUBATOR),
+    _o("Mi", "Mikroskop", False, "einem Mikroskop", "dem Mikroskop", icon=_MIKROSKOP),
+    _o("Th", "Theke", False, "einer Theke", "der Theke", icon=_THEKE),
+    # besetzbar (hier unten, damit die Reihenfolge oben stabil bleibt)
+    _o("Fa", "Fahrrad", True, "einem Fahrrad", "dem Fahrrad",
+       "saß auf einem Fahrrad", "saß auf dem Fahrrad", "Niemand saß auf einem Fahrrad.", _FAHRRAD),
+    _o("Wc", "Toilette", True, "einer Toilette", "der Toilette",
+       "saß auf einer Toilette", "saß auf der Toilette", "Niemand saß auf einer Toilette.", _TOILETTE),
 ]}
+
+# Diese Gegenstände dürfen 1 oder 2 Felder groß sein
+for _k, _breit in {"Be": _BETT2, "So": _SOFA2, "Ti": _TISCH2, "Te": _TEPPICH2}.items():
+    KATALOG[_k] = replace(KATALOG[_k], icon2=_breit)
 
 
 def eigenes_objekt(kuerzel: str, name: str, genus: str = "m", besetzbar: bool = False,

@@ -47,6 +47,10 @@ Oder eine Datei in `faelle/` kopieren und von Hand anpassen:
 
 * `plan` – ein Buchstabe pro Feld, welcher Bereich (Raum) das ist
 * `objekte` – ein Kürzel pro Feld (`..` = frei), siehe `krimi/katalog.py`
+  Bett, Sofa, Tisch und Teppich dürfen zwei Felder groß sein:
+  `Be> Be<` (waagrecht, `>` zeigt zum Partner) oder `Bev` über `Be^` (senkrecht).
+  Ein großes Stück zählt als *ein* Gegenstand, und die eigene zweite Hälfte
+  gilt nicht als „daneben“.
 * `personen` / `opfer` – Namen und in welchem Bereich sie laut Lösung waren
 * `schwierigkeit` – `leicht`, `mittel` oder `schwer`
 * `seed` – ein anderer Wert ergibt ein anderes Rätsel auf demselben Plan

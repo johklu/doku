@@ -31,6 +31,7 @@
   --akzent: #e8675c; --ok: #86c486; --warn: #e3a660; color-scheme: dark;
 }
 * { box-sizing: border-box; }
+[hidden] { display: none !important; }
 body { background: var(--bg); color: var(--tinte); font-family: var(--text); font-size: 14px;
   line-height: 1.45; padding-block: 20px 48px;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
@@ -62,6 +63,11 @@ header p { margin: 4px 0 0; color: var(--leise); max-width: 70ch; }
 .obj .n { stroke-width: 2.4; stroke-opacity: .8; }
 .obj text { fill: var(--plan-tinte); stroke: none; }
 .tipp { font-size: 12.5px; color: var(--leise); margin: 10px 0 0; }
+.stueck-wahl { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: -2px 0 10px; font-size: 13px; }
+.stueck-wahl button.aktiv { outline: 2px solid var(--akzent); outline-offset: 1px; border-color: var(--akzent); }
+.stueck-meldung { color: var(--akzent); font-size: 12.5px; }
+.unsichtbar { visibility: hidden; }
+.gegenstand .breit { font-size: 10px; color: var(--leise); margin-left: 3px; }
 
 .schritte { display: grid; gap: 14px; min-width: 0; }
 section.schritt { background: var(--flaeche); border: 1px solid var(--linie); border-radius: 6px; padding: 14px 16px; min-width: 0; }
@@ -132,6 +138,13 @@ details.eigener .zeile { margin-top: 8px; }
           <select id="groesse"></select>
         </label>
         <div class="werkzeug-anzeige" id="werkzeug-anzeige"></div>
+      </div>
+      <div class="stueck-wahl unsichtbar" id="stueck-wahl">
+        <span>Größe:</span>
+        <button class="klein" data-groesse="1">1 Feld</button>
+        <button class="klein" data-groesse="h">2 Felder ↔</button>
+        <button class="klein" data-groesse="v">2 Felder ↕</button>
+        <span class="stueck-meldung" id="stueck-meldung" role="status"></span>
       </div>
       <div class="plan-huelle"><svg id="plan" xmlns="http://www.w3.org/2000/svg"></svg></div>
       <p class="tipp">Bereich gewählt: Felder anklicken oder mit gedrückter Maus übermalen. Gegenstand gewählt: Feld anklicken (nochmal klicken entfernt ihn). In jeder Zeile und Spalte steht später genau eine Person – bei 8×8 also 8 Personen inklusive „Opfer“.</p>
@@ -252,7 +265,28 @@ function katalogAlle() {
     icon: `<rect class="f" x="8" y="8" width="84" height="84" rx="14"/><text x="50" y="63" text-anchor="middle" font-size="40" font-family="sans-serif">${esc(e.k)}</text>`}));
   return KATALOG.concat(eig);
 }
-function objektInfo(k) { return katalogAlle().find((o) => o.k === k); }
+function basis(tok) { return tok && tok.length === 3 ? tok.slice(0, 2) : tok; }
+function objektInfo(k) { const b = basis(k); return katalogAlle().find((o) => o.k === b); }
+// Zwei-Felder-Stücke: "Be>" + "Be<" (waagrecht), "Bev" + "Be^" (senkrecht)
+const PARTNER = {">": [0, 1, "<"], "<": [0, -1, ">"], "v": [1, 0, "^"], "^": [-1, 0, "v"]};
+function stueckZellen(r, c) {
+  const tok = S.objekte[r][c];
+  if (!tok) return [];
+  if (tok.length !== 3) return [[r, c]];
+  const [dr, dc] = PARTNER[tok[2]];
+  return [[r, c], [r + dr, c + dc]];
+}
+function entferneStueck(r, c) { stueckZellen(r, c).forEach(([rr, cc]) => { if (S.objekte[rr]?.[cc] !== undefined) S.objekte[rr][cc] = null; }); }
+function aufraeumen() {
+  // halbe Stücke (z. B. nach Verkleinern des Plans) werden zu 1-Feld-Stücken
+  for (let r = 0; r < S.n; r++) for (let c = 0; c < S.n; c++) {
+    const tok = S.objekte[r][c];
+    if (!tok || tok.length !== 3) continue;
+    const [dr, dc, gegen] = PARTNER[tok[2]];
+    if (S.objekte[r + dr]?.[c + dc] !== tok.slice(0, 2) + gegen) S.objekte[r][c] = tok.slice(0, 2);
+  }
+}
+let stueckGroesse = "1";
 function bereichInfo(k) { return S.bereiche.find((b) => b.k === k); }
 function besetzbar(r, c) { const k = S.objekte[r][c]; if (!k) return true; const o = objektInfo(k); return !o || o.besetzbar; }
 
@@ -273,7 +307,11 @@ function zeichnePlan() {
   for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
     const k = S.objekte[r][c]; if (!k) continue;
     const o = objektInfo(k); if (!o) continue;
-    t.push(`<g class="obj" transform="translate(${RAND + c * ZELLE + 14} ${RAND + r * ZELLE + 14}) scale(0.72)">${o.icon}</g>`);
+    const x = RAND + c * ZELLE, y = RAND + r * ZELLE, s = k.length === 3 ? k[2] : "";
+    if (s === "<" || s === "^") continue;
+    if (s === ">" && o.icon2) t.push(`<g class="obj" transform="translate(${x + 6} ${y + 10}) scale(0.94 0.8)">${o.icon2}</g>`);
+    else if (s === "v" && o.icon2) t.push(`<g class="obj" transform="translate(${x + 90} ${y + 6}) rotate(90) scale(0.94 0.8)">${o.icon2}</g>`);
+    else t.push(`<g class="obj" transform="translate(${x + 14} ${y + 14}) scale(0.72)">${o.icon}</g>`);
   }
   for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
     const x = RAND + c * ZELLE, y = RAND + r * ZELLE;
@@ -302,10 +340,27 @@ function anwenden(z, erster) {
   if (!z || !werkzeug) return;
   const [r, c] = z;
   if (werkzeug.art === "bereich") S.plan[r][c] = werkzeug.k;
-  else if (werkzeug.art === "radierer") S.objekte[r][c] = null;
+  else if (werkzeug.art === "radierer") entferneStueck(r, c);
   else if (werkzeug.art === "objekt") {
     if (!erster) return;
-    S.objekte[r][c] = S.objekte[r][c] === werkzeug.k ? null : werkzeug.k;
+    $("stueck-meldung").textContent = "";
+    if (basis(S.objekte[r][c]) === werkzeug.k) { entferneStueck(r, c); zeichnePlan(); return; }
+    const o = objektInfo(werkzeug.k);
+    const g = o && o.icon2 ? stueckGroesse : "1";
+    if (g === "1") { entferneStueck(r, c); S.objekte[r][c] = werkzeug.k; }
+    else {
+      const [dr, dc] = g === "h" ? [0, 1] : [1, 0];
+      const rr = r + dr, cc = c + dc;
+      if (rr >= S.n || cc >= S.n || S.plan[rr][cc] !== S.plan[r][c]) {
+        $("stueck-meldung").textContent = g === "h"
+          ? "Kein Platz: Das Feld rechts daneben muss im selben Bereich liegen."
+          : "Kein Platz: Das Feld darunter muss im selben Bereich liegen.";
+        return;
+      }
+      entferneStueck(r, c); entferneStueck(rr, cc);
+      S.objekte[r][c] = werkzeug.k + (g === "h" ? ">" : "v");
+      S.objekte[rr][cc] = werkzeug.k + (g === "h" ? "<" : "^");
+    }
   }
   zeichnePlan();
 }
@@ -333,7 +388,11 @@ function zeigeWerkzeug() {
   if (werkzeug?.art === "radierer") t = "Werkzeug: <b>Radierer</b>";
   $("werkzeug-anzeige").innerHTML = t;
   $("radierer").classList.toggle("aktiv", werkzeug?.art === "radierer");
+  const gross = werkzeug?.art === "objekt" && objektInfo(werkzeug.k)?.icon2;
+  $("stueck-wahl").classList.toggle("unsichtbar", !gross);
+  document.querySelectorAll("[data-groesse]").forEach((b) => b.classList.toggle("aktiv", b.dataset.groesse === stueckGroesse));
 }
+document.querySelectorAll("[data-groesse]").forEach((b) => (b.onclick = () => { stueckGroesse = b.dataset.groesse; zeigeWerkzeug(); }));
 $("radierer").onclick = () => setzeWerkzeug({art: "radierer"});
 
 // ---------- 1 Bereiche ----------
@@ -375,7 +434,7 @@ $("bereich-neu").onclick = () => {
 function knopf(o) {
   const aktiv = werkzeug?.art === "objekt" && werkzeug.k === o.k;
   return `<button class="gegenstand ${aktiv ? "aktiv" : ""}" data-objekt="${esc(o.k)}" title="${esc(o.name)}">
-    <svg viewBox="0 0 100 100"><g class="obj">${o.icon}</g></svg><span class="name">${esc(o.name)}</span>
+    <svg viewBox="0 0 100 100"><g class="obj">${o.icon}</g></svg><span class="name">${esc(o.name)}${o.icon2 ? '<span class="breit">1–2</span>' : ""}</span>
     <span class="${o.besetzbar ? "mark-ok" : "mark-nein"}">${o.besetzbar ? "✓" : "✕"}</span></button>`;
 }
 function zeichneGegenstaende() {
@@ -443,6 +502,7 @@ $("groesse").onchange = (e) => {
   S.objekte = Array.from({length: n}, (_, r) => Array.from({length: n}, (_, c) => alt.objekte[r]?.[c] ?? null));
   S.personen = Array.from({length: n - 1}, (_, i) => alt.personen[i] || {name: "", bereich: erster});
   S.n = n;
+  aufraeumen();
   alles();
 };
 
@@ -503,6 +563,14 @@ function pruefe() {
   if (zahl === 0) fehler("So geht es nicht auf: Mit diesen Bereichen und Gegenständen lässt sich keine Aufstellung finden, bei der in jeder Zeile und Spalte genau eine Person steht. Tipp: Bereiche über mehr Zeilen/Spalten ziehen oder Personen anders verteilen.");
   else if (zahl < 4) warn(`Nur ${zahl} mögliche Aufstellung${zahl === 1 ? "" : "en"} – sehr eng, das Rätsel wird eher leicht.`);
   else ok(`${zahl >= 50000 ? "Über 50.000" : zahl.toLocaleString("de-DE")} mögliche Aufstellungen – passt.`);
+  for (let r = 0; r < S.n; r++) for (let c = 0; c < S.n; c++) {
+    const tok = S.objekte[r][c];
+    if (tok && tok.length === 3 && (tok[2] === ">" || tok[2] === "v")) {
+      const [, [rr, cc]] = stueckZellen(r, c);
+      if (S.plan[rr]?.[cc] !== S.plan[r][c])
+        fehler(`${objektInfo(tok)?.name} in ${SPALTEN[c]}${r + 1} liegt über zwei Bereichen – bitte verschieben oder neu setzen.`);
+    }
+  }
   const blockiert = S.objekte.flat().filter((k) => k && !objektInfo(k)?.besetzbar).length;
   if (blockiert === 0) warn("Noch keine blockierten Gegenstände – sie machen das Rätsel interessanter.");
   if (!S.frage.trim()) warn("Die Frage fehlt (z. B. „Wer hat … ?“). Ich kann auch eine vorschlagen.");

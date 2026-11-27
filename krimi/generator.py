@@ -104,17 +104,15 @@ def kandidaten(fall: Fall, pos: dict[int, Zelle], p: int) -> list[Hinweis]:
         h = AufObjekt(p, o.kuerzel)
         liste.append(h)
         erste.append(h)
-    nachbar_arten = {fall.objekt(nz).kuerzel for nz in fall.nachbarn_im_bereich(z)
-                     if fall.objekt(nz)}
+    nachbar_arten = fall.arten_neben(z)
     for k in sorted(nachbar_arten):
         h = NebenObjekt(p, k)
         if fall.anzahl_objekt(k) >= 8:      # "neben einem Sitz" ist fast nichtssagend
             h.prio = 2
         liste.append(h)
         zweite.append(h)
-    relevant = {fall.objekt(nz).kuerzel
-                for bz in fall.bereichs_zellen(b) if fall.besetzbar(bz)
-                for nz in fall.nachbarn_im_bereich(bz) if fall.objekt(nz)}
+    relevant = {k for bz in fall.bereichs_zellen(b) if fall.besetzbar(bz)
+                for k in fall.arten_neben(bz)}
     for k in sorted(relevant - nachbar_arten):
         h = NichtNebenObjekt(p, k)
         liste.append(h)
