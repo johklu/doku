@@ -69,6 +69,7 @@ class Fall:
     # stuecke[i] = (kuerzel, [zellen], richtung "h"/"v"/None, drehung 0–3 Vierteldrehungen)
     stueck_von: list[list[int | None]] = field(default_factory=list)
     stuecke: list[tuple[str, list, str | None, int]] = field(default_factory=list)
+    opfer_hinweis: bool = False   # darf auch das "Opfer" einen Hinweis bekommen?
     frage: str = ""      # "Wer hat Okon-Engstler mit Kölsch beworfen?"
     tat: str = ""        # "hat Okon-Engstler mit Kölsch beworfen"
     katalog: dict[str, Objekt] = field(default_factory=dict)
@@ -253,6 +254,7 @@ def lade_fall(pfad: str | Path) -> Fall:
         frage=daten.get("frage", f"Wer war mit {o['name']} allein?"),
         tat=daten.get("tat", "war es").strip().rstrip(".!").strip(),
         katalog=katalog,
+        opfer_hinweis=daten.get("opfer_hinweis", False),
         stueck_von=stueck_von,
         stuecke=stuecke,
     )

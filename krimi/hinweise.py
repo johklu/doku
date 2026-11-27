@@ -15,6 +15,8 @@ from __future__ import annotations
 from .fall import Fall, Zelle
 
 Stellung = dict[int, Zelle]
+VERB_MEHRZAHL = {"befand": "befanden", "stand": "standen", "saß": "saßen",
+                 "lag": "lagen", "war": "waren", "hatte": "hatten"}
 
 
 class Hinweis:
@@ -48,8 +50,22 @@ class Hinweis:
     def gilt(self, fall: Fall, pos: Stellung) -> bool:
         raise NotImplementedError
 
-    def text(self, fall: Fall) -> str:
+    def _text(self, fall: Fall) -> str:
         raise NotImplementedError
+
+    def text(self, fall: Fall) -> str:
+        """Der fertige Satz. Ist das Subjekt ein "Opfer" mit eigenen Formen
+        ("die Ovomaltine"), beginnt der Satz damit; bei Mehrzahl ("die Oliven")
+        wird das Verb angepasst."""
+        s = self._text(fall)
+        person = fall.personen[self.subjekt]
+        if person.nominativ and s.startswith(person.name + " "):
+            rest = s[len(person.name) + 1:]
+            if person.mehrzahl:
+                verb, _, danach = rest.partition(" ")
+                rest = VERB_MEHRZAHL.get(verb, verb) + " " + danach
+            s = person.nominativ[:1].upper() + person.nominativ[1:] + " " + rest
+        return s
 
     def schluessel(self):
         return (type(self).__name__,) + tuple(
@@ -89,7 +105,7 @@ class ImBereich(Hinweis):
     def praedikat(self, fall):
         return f"war {fall.bereiche[self.b].praep}"
 
-    def text(self, fall):
+    def _text(self, fall):
         return f"{_name(fall, self.p)} {self.praedikat(fall)}."
 
 
@@ -106,7 +122,7 @@ class NichtImBereich(Hinweis):
     def gilt(self, fall, pos):
         return fall.bereich(pos[self.p]) != self.b
 
-    def text(self, fall):
+    def _text(self, fall):
         return f"{_name(fall, self.p)} war nicht {fall.bereiche[self.b].praep}."
 
 
@@ -130,7 +146,7 @@ class AufObjekt(Hinweis):
         o = fall.katalog[self.k]
         return o.auf_best if fall.anzahl_objekt(self.k) == 1 else o.auf_unbest
 
-    def text(self, fall):
+    def _text(self, fall):
         return f"{_name(fall, self.p)} {self.praedikat(fall)}."
 
 
@@ -154,7 +170,7 @@ class NebenObjekt(Hinweis):
         art = o.dat_best if fall.anzahl_objekt(self.k) == 1 else o.dat_unbest
         return f"direkt neben {art}"
 
-    def text(self, fall):
+    def _text(self, fall):
         return f"{_name(fall, self.p)} befand sich {self.zusatz(fall)}."
 
 
@@ -180,7 +196,7 @@ class NichtNebenObjekt(Hinweis):
     def zusatz(self, fall):
         return f"aber nicht neben {self._art(fall)}"
 
-    def text(self, fall):
+    def _text(self, fall):
         return f"{_name(fall, self.p)} befand sich nicht neben {self._art(fall)}."
 
 
@@ -203,7 +219,7 @@ class AmRand(Hinweis):
     def zusatz(self, fall):
         return "am äußeren Rand des Plans" if self.ja else "nicht am äußeren Rand des Plans"
 
-    def text(self, fall):
+    def _text(self, fall):
         return f"{_name(fall, self.p)} befand sich {self.zusatz(fall)}."
 
 
@@ -222,7 +238,7 @@ class Niemand(Hinweis):
     def gilt(self, fall, pos):
         return all(self.erlaubt(fall, p, z) for p, z in pos.items())
 
-    def text(self, fall):
+    def _text(self, fall):
         return fall.katalog[self.k].niemand
 
     def schluessel(self):
@@ -243,7 +259,7 @@ class Allein(Hinweis):
         b = fall.bereich(pos[self.p])
         return all(fall.bereich(z) != b for q, z in pos.items() if q != self.p)
 
-    def text(self, fall):
+    def _text(self, fall):
         return f"{_name(fall, self.p)} hatte den ganzen Bereich für sich allein."
 
 
@@ -267,7 +283,7 @@ class GleicherBereich(_Binaer):
     def ok2(self, fall, za, zb):
         return fall.bereich(za) == fall.bereich(zb)
 
-    def text(self, fall):
+    def _text(self, fall):
         return f"{_name(fall, self.p)} und {_name(fall, self.q)} waren im selben Bereich."
 
 
@@ -277,7 +293,7 @@ class AndererBereich(_Binaer):
     def ok2(self, fall, za, zb):
         return fall.bereich(za) != fall.bereich(zb)
 
-    def text(self, fall):
+    def _text(self, fall):
         return (f"{_name(fall, self.p)} und {_name(fall, self.q)} "
                 f"waren in verschiedenen Bereichen.")
 
@@ -297,7 +313,7 @@ class Links(_Binaer):
     def ok2(self, fall, za, zb):
         return za[1] < zb[1]
 
-    def text(self, fall):
+    def _text(self, fall):
         if self.umgekehrt:
             return f"{_name(fall, self.q)} befand sich weiter rechts als {_name(fall, self.p)}."
         return f"{_name(fall, self.p)} befand sich weiter links als {_name(fall, self.q)}."
@@ -318,7 +334,7 @@ class Oben(_Binaer):
     def ok2(self, fall, za, zb):
         return za[0] < zb[0]
 
-    def text(self, fall):
+    def _text(self, fall):
         if self.umgekehrt:
             return f"{_name(fall, self.q)} befand sich weiter unten als {_name(fall, self.p)}."
         return f"{_name(fall, self.p)} befand sich weiter oben als {_name(fall, self.q)}."
@@ -331,7 +347,7 @@ class Schraeg(_Binaer):
         return (abs(za[0] - zb[0]) == 1 and abs(za[1] - zb[1]) == 1
                 and fall.bereich(za) == fall.bereich(zb))
 
-    def text(self, fall):
+    def _text(self, fall):
         return (f"{_name(fall, self.p)} und {_name(fall, self.q)} "
                 f"befanden sich schräg nebeneinander.")
 
@@ -351,7 +367,7 @@ class Kombi(Hinweis):
     def gilt(self, fall, pos):
         return self.a.gilt(fall, pos) and self.b.gilt(fall, pos)
 
-    def text(self, fall):
+    def _text(self, fall):
         return f"{_name(fall, self.a.p)} {self.a.praedikat(fall)}, {self.b.zusatz(fall)}."
 
     def schluessel(self):

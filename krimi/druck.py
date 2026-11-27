@@ -195,7 +195,8 @@ def _seite_regeln(fall: Fall | None) -> str:
         „Opfer“ im selben Bereich befand. Im Bereich des „Opfers“ ist also genau eine
         weitere Person.</li>
     <li><b>Ein Hinweis pro Person.</b> Zu jeder verdächtigen Person gibt es genau
-        einen Hinweis, und kein Hinweis kommt doppelt vor. Alle Hinweise sind wahr.
+        einen Hinweis – in großen Fällen manchmal auch einen zum „Opfer“ –, und kein
+        Hinweis kommt doppelt vor. Alle Hinweise sind wahr.
         Jeder Fall hat genau eine Lösung, und sie lässt sich ohne Raten finden.</li>
   </ol>
 
@@ -220,8 +221,8 @@ def _seite_regeln(fall: Fall | None) -> str:
     <li>Ist eine Person gesetzt, sind ihre ganze Zeile und Spalte für alle anderen tabu.</li>
     <li>Schau dir die Bereiche an: Zwei Personen, die beide in einen Bereich über
         nur zwei Zeilen müssen, belegen genau diese beiden Zeilen.</li>
-    <li>Das „Opfer“ wird in keinem Hinweis erwähnt – es steht am Ende auf dem
-        einzigen Feld, das noch übrig bleibt.</li>
+    <li>Hat das „Opfer“ keinen eigenen Hinweis, steht es am Ende auf dem einzigen
+        Feld, das noch übrig bleibt.</li>
     <li>Wer nicht weiterkommt, findet hinten im Buch zu jedem Fall einen kurzen
         Lösungsweg.</li>
   </ul>

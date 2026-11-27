@@ -201,10 +201,49 @@ def _note(hinweise: list[Hinweis]) -> float:
     return s
 
 
-def suche(fall: Fall, pos, rng: random.Random, ziel, schritte_max: int = 80):
+def opfer_kandidaten(fall: Fall, pos) -> list[Hinweis]:
+    """Hinweise zum "Opfer": nur über Gegenstände und den Rand – nichts, was den
+    Bereich (und damit den Übeltäter) direkt verrät."""
+    erlaubt = (AufObjekt, NebenObjekt, NichtNebenObjekt, AmRand)
+    return [h for h in kandidaten(fall, pos, fall.opfer_index)
+            if isinstance(h, erlaubt)
+            or (isinstance(h, Kombi) and isinstance(h.a, AufObjekt))]
+
+
+def alle_kandidaten(fall: Fall, pos) -> dict[int, list[Hinweis]]:
     v = fall.opfer_index
-    verdaechtige = [p for p in range(len(fall.personen)) if p != v]
-    kand = {p: kandidaten(fall, pos, p) for p in verdaechtige}
+    kand = {p: kandidaten(fall, pos, p) for p in range(len(fall.personen)) if p != v}
+    if fall.opfer_hinweis:
+        kand[v] = opfer_kandidaten(fall, pos)
+    return kand
+
+
+def _gierig(fall: Fall, kand, rng, frei, runden: int = 2, grenze: int = 800):
+    """Für große Pläne: je Person den Hinweis nehmen, der die Zahl der Lösungen
+    am stärksten senkt (mit hoher Zählgrenze, damit Unterschiede sichtbar sind)."""
+    wahl: dict[int, Hinweis] = {}
+    for _ in range(runden):
+        for p in rng.sample(list(kand), len(kand)):
+            bestes = None
+            for h in kand[p]:
+                if not frei(p, h, wahl):
+                    continue
+                neu = dict(wahl)
+                neu[p] = h
+                n = len(finde_loesungen(fall, list(neu.values()), limit=grenze))
+                schluessel = (n, -_gewicht(h) * rng.random())
+                if bestes is None or schluessel < bestes[0]:
+                    bestes = (schluessel, h)
+            if bestes:
+                wahl[p] = bestes[1]
+        if len(wahl) == len(kand) and len(finde_loesungen(fall, list(wahl.values()))) == 1:
+            break
+    return wahl
+
+
+def suche(fall: Fall, pos, rng: random.Random, ziel, schritte_max: int = 80):
+    kand = alle_kandidaten(fall, pos)
+    verdaechtige = list(kand)
 
     def frei(p, h, wahl):
         """h passt, wenn (1) keine gleiche Aussage schon bei jemand anderem steht
@@ -220,12 +259,17 @@ def suche(fall: Fall, pos, rng: random.Random, ziel, schritte_max: int = 80):
         formen.update(satzformen(h))
         return max(formen.values()) <= 2
 
-    wahl: dict[int, Hinweis] = {}
-    for p in rng.sample(verdaechtige, len(verdaechtige)):
-        moeglich = [h for h in kand[p] if frei(p, h, wahl)]
-        if not moeglich:
+    if fall.n >= 9:
+        wahl = _gierig(fall, kand, rng, frei)
+        if len(wahl) < len(kand):
             return wahl, 999.0, 0
-        wahl[p] = rng.choices(moeglich, weights=[_gewicht(h) for h in moeglich])[0]
+    else:
+        wahl = {}
+        for p in rng.sample(verdaechtige, len(verdaechtige)):
+            moeglich = [h for h in kand[p] if frei(p, h, wahl)]
+            if not moeglich:
+                return wahl, 999.0, 0
+            wahl[p] = rng.choices(moeglich, weights=[_gewicht(h) for h in moeglich])[0]
     kosten, proben = _kosten(fall, wahl, ziel)
     bestes_bisher, ohne_fortschritt = kosten, 0
     for _ in range(schritte_max):
@@ -262,13 +306,13 @@ def erzeuge(fall: Fall, versuche: int = 12, log=print) -> Raetsel:
                          "Aufstellung (jede Zeile/Spalte genau eine Person).")
     log(f"  {len(aufstellungen)} mögliche Aufstellungen")
     bestes = None
-    v = fall.opfer_index
+    if fall.n >= 9:
+        versuche = min(versuche, 10)       # große Pläne: jeder Versuch dauert länger
     for i in range(versuche):
         pos = rng.choice(aufstellungen)
         # Aufstellungen, die selbst mit ALLEN wahren Aussagen nicht eindeutig
         # werden, gar nicht erst versuchen.
-        alle = [h for p in range(len(fall.personen)) if p != v
-                for h in kandidaten(fall, pos, p)]
+        alle = [h for liste in alle_kandidaten(fall, pos).values() for h in liste]
         if len(finde_loesungen(fall, alle)) != 1:
             log(f"  Versuch {i + 1:2d}: Aufstellung grundsätzlich mehrdeutig")
             continue
@@ -283,7 +327,8 @@ def erzeuge(fall: Fall, versuche: int = 12, log=print) -> Raetsel:
         if bestes is None or note < bestes[0]:
             bestes = (note, pos, hinweise)
     if bestes is None:
-        raise RuntimeError("Kein lösbares Rätsel gefunden – mehr Versuche oder Plan ändern.")
+        tipp = "" if fall.opfer_hinweis else " Tipp: opfer_hinweis = true in der Fall-Datei."
+        raise RuntimeError("Kein lösbares Rätsel gefunden – mehr Versuche oder Plan ändern." + tipp)
     _, pos, hinweise = bestes
     loesung, proben, schritte = loese_logisch(fall, hinweise, protokoll=True)
     assert loesung == pos

@@ -1,0 +1,105 @@
+# Fall 04 – Puder auf der Piste (aus der Grundriss-Werkstatt)
+# Achtung TOML: alle einfachen Einträge müssen VOR der ersten [Tabelle] stehen.
+
+nummer = 4
+titel = "Puder auf der Piste"
+ort = "Obersaxen"
+schwierigkeit = "mittel"
+seed = 1
+opfer_hinweis = true       # großer, offener Plan: auch die Ovomaltine bekommt einen Hinweis
+
+frage = "Wer hat die Ovomaltine geklaut?"
+tat = "hat die Ovomaltine geklaut"
+
+intro = """
+Ein vermeintlich perfekter Skitag im beschaulichen Obersaxen. Calzi und Pete haben
+mal wieder Carlo Janka in den Schatten gestellt – der eine mit seinem Wedeln, der
+andere mit seinen 180ern. Der Rest der Rasselbande ist etwas zurückhaltender und
+auch knieschonender unterwegs. Alle genießen die Berge und können dabei sogar noch
+etwas lernen (natürlich von Calzi!). Mittags kehren sie gemeinsam im Wali ein, um
+sich ihre selbstgeschmierten Brote zu gönnen. Johann bestellt sich, in mittlerweile
+nur noch gebrochenem Berndeutsch, zusätzlich eine Ovomaltine, Ranges übertreibt
+wieder direkt mit 'ner Suppe und einem Red Bull, und auch Leah gönnt sich etwas mit
+den Käsespätzle. Nach diesem Festmahl geht es nachmittags wieder auf die Pisten
+Obersaxens. Doch die Idylle trügt. Im Wali herrscht Panik! Jemand hat den
+Ovomaltine-Vorrat geklaut! Nur die Rabaukinnen aus Ilanz können dafür
+verantwortlich sein! Doch wer hat das wertvolle Pulver gestohlen?
+"""
+
+plan = """
+FFFFAAAAC
+DDAAAAACC
+DDAABBBCC
+GGGAABBCC
+DDAAABBCC
+DDAAABBCC
+EEEEABBCC
+EEEEAAAAC
+EEEEAAAAC
+"""
+
+objekte = """
+.. .. .. .. Sn Sk Sn Sm Ts
+St@3 St@3 Sn Sn Sn Sn Sn Sz Ts
+St@3 St@3 Sn Sn Sn Sn Sz Bk Ts
+.. .. .. Sn Sn Fs Sn Bk Ts
+St@3 St@3 Sk Sn Sn Sn Sk Bk Ts
+St@3 St@3 Sn Sn Sn Sn Bk Bk Fs
+.. .. .. Si Sz Sn Bk Bk Ts
+Th Th Si Tiv Sn Sn Sn Sn Ts
+Wb Km Si Ti^ Sn Sn Sn Sm Ts
+"""
+
+[stil]
+akzent = "#c8201a"           # Schweizer Rot
+tinte = "#231d17"
+titelschrift = "Special Elite"
+textschrift = "Crimson Pro"
+
+[bereiche]
+A = { name = "Blaue Piste", praep = "auf der blauen Piste", farbe = "#e9f9ff" }
+B = { name = "Rote Piste", praep = "auf der roten Piste", farbe = "#ffcacb" }
+C = { name = "Schwarze Piste", praep = "auf der schwarzen Piste", farbe = "#a4a4a6" }
+D = { name = "Lift", praep = "im Lift", farbe = "#8f95e5" }
+E = { name = "Rufalipark", praep = "im Rufalipark", farbe = "#e2d4ef" }
+F = { name = "Stein", praep = "auf dem Stein", farbe = "#f6dcc0" }
+G = { name = "Untermatt-Station", praep = "an der Untermatt-Station", farbe = "#93ea6b" }
+
+[[personen]]
+name = "Calzi"
+bereich = "D"
+
+[[personen]]
+name = "Hosen"
+bereich = "E"
+
+[[personen]]
+name = "Pete"
+bereich = "C"
+
+[[personen]]
+name = "Leah"
+bereich = "C"
+
+[[personen]]
+name = "Johann"
+bereich = "A"
+
+[[personen]]
+name = "Equi"
+bereich = "B"
+
+[[personen]]
+name = "Trilling"
+bereich = "B"
+
+[[personen]]
+name = "Ranges"
+bereich = "F"
+
+[opfer]
+name = "Ovomaltine"
+bereich = "A"
+nominativ = "die Ovomaltine"
+dativ = "der Ovomaltine"
+akkusativ = "die Ovomaltine"

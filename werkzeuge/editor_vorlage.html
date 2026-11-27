@@ -514,6 +514,8 @@ function zeichnePersonen() {
       <input type="text" id="o-name" value="${esc(S.opfer.name)}" placeholder="„Opfer“" aria-label="Name Opfer">
       <select id="o-ber" aria-label="Bereich Opfer">${bereichOptionen(S.opfer.bereich)}</select></div>`);
   const og = S.opfer;
+  zeilen.push(`<label class="sperre" style="margin-top:6px;font-size:12.5px"><input type="checkbox" id="o-hinweis" ${S.opfer_hinweis ? "checked" : ""}>
+      Auch das „Opfer“ darf einen Hinweis bekommen (hilft bei großen, offenen Plänen)</label>`);
   zeilen.push(`<details class="eigener" ${og.nominativ ? "open" : ""}>
       <summary>Das „Opfer“ ist keine Person? (z. B. „die Oliven“)</summary>
       <p class="hilfe" style="margin-top:6px">Damit die Sätze stimmen: „Dort waren <i>die Oliven</i>“, „mit <i>den Oliven</i>“. Bei Personen leer lassen.</p>
@@ -526,6 +528,7 @@ function zeichnePersonen() {
   $("personen").innerHTML = zeilen.join("");
   [["o-nom", "nominativ"], ["o-dat", "dativ"], ["o-akk", "akkusativ"]].forEach(([id, feld]) =>
     ($(id).oninput = (e) => { S.opfer[feld] = e.target.value; allesAusser("personen"); }));
+  $("o-hinweis").onchange = (e) => { S.opfer_hinweis = e.target.checked; allesAusser("personen"); };
   $("o-mz").onchange = (e) => { S.opfer.mehrzahl = e.target.value === "1"; allesAusser("personen"); };
   S.personen.forEach((p, i) => {
     $(`p-name-${i}`).oninput = (e) => { p.name = e.target.value; allesAusser("personen"); };
@@ -625,6 +628,7 @@ function pruefe() {
   }
   const blockiert = S.objekte.flat().filter((k) => k && !objektInfo(k)?.besetzbar).length;
   if (blockiert === 0) warn("Noch keine blockierten Gegenstände – sie machen das Rätsel interessanter.");
+  if (S.n >= 9 && !S.opfer_hinweis) warn("Großer Plan: Mit nur einem Hinweis pro Person wird es oft nicht eindeutig. Tipp: bei 3 Personen „Auch das ‚Opfer‘ darf einen Hinweis bekommen“ ankreuzen.");
   if (!S.frage.trim()) warn("Die Frage fehlt (z. B. „Wer hat … ?“). Ich kann auch eine vorschlagen.");
   $("pruefung").innerHTML = m.map(([art, z, t]) => `<li><span class="s-${art}">${z}</span><span>${esc(t)}</span></li>`).join("");
 }
@@ -639,6 +643,7 @@ function exportText() {
   L.push(`ort = ${q(S.ort)}`);
   L.push(`schwierigkeit = ${q(S.schwierigkeit || "mittel")}`);
   L.push(`seed = 1`);
+  if (S.opfer_hinweis) L.push(`opfer_hinweis = true`);
   L.push(`frage = ${q(S.frage)}`);
   L.push(`tat = ${q(S.tat)}`);
   L.push(`intro = """\n${String(S.intro || "").replace(/\\/g, "\\\\").replace(/"""/g, '""\\"')}\n"""`);
