@@ -25,25 +25,32 @@ Wer hatte Gelegenheit, mit Okon-Engstler allein zu sein?
 
 plan = """
 TTTTTTTT
-TTTVVVTT
-TTTVVVTT
-TFFFFFFT
-TFFFFFFT
-KKFFFFFT
-KKKFFFFT
-KKKTTTTT
+TTVVVVTT
+TTVVVVTT
+TTFFFFTT
+TTFFFFTT
+KKFFFFTT
+KKTTTTTT
+KKTTTTTT
 """
 
 objekte = """
-Si Si Ka Si Si .. Si Si
-Si .. Si Se Ti Se Si Kö
-Si Si .. Pf Se Bu .. Si
-.. .. .. .. .. .. .. Si
-Si To .. .. .. .. To Ka
-Sp Ba .. Bl .. .. .. Si
-Du Ba Sp .. .. .. .. ..
-Sp .. Ba Si Si Kö Si Si
+Si Si Ka Si Si Si .. Si
+Si .. Se Ti Ti Se Si Kö
+.. Si Pf Se Se Bu Si Si
+Si Si .. .. .. .. .. Si
+Si Ka To .. Bl To Si ..
+Sp Ba .. .. .. .. Si Si
+Du Ba Si Si Kö Si .. Si
+Sp .. Si .. Si Si Si Ka
 """
+
+# Aussehen dieses Falls (alles optional; Schriften siehe krimi/druck.py)
+[stil]
+akzent = "#c8102e"          # FC-Rot
+tinte = "#231d17"
+titelschrift = "Special Elite"
+textschrift = "Crimson Pro"
 
 [bereiche]
 T = { name = "Tribüne",   praep = "auf der Tribüne",   farbe = "#f3d3cd" }

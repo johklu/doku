@@ -31,13 +31,20 @@ Eine Datei in `faelle/` kopieren und anpassen:
 * `personen` / `opfer` – Namen und in welchem Bereich sie laut Lösung waren
 * `schwierigkeit` – `leicht`, `mittel` oder `schwer`
 * `seed` – ein anderer Wert ergibt ein anderes Rätsel auf demselben Plan
+* `[stil]` – Akzentfarbe, Textfarbe, Titel- und Textschrift dieses Falls
 
-Der Generator wählt eine Aufstellung, sammelt alle wahren Aussagen dazu und
-streicht so lange Hinweise, bis ein knapper Satz übrig bleibt, der
+Jede verdächtige Person bekommt **genau einen Hinweis**. Der Generator wählt
+eine Aufstellung, sammelt je Person alle wahren Aussagen und tauscht so lange
+aus, bis die sieben Hinweise zusammen
 
-1. genau **eine** Lösung hat (exakter Löser) und
-2. sich **ohne Raten** lösen lässt (logischer Löser, die Zahl der nötigen
-   „Was wäre wenn“-Proben bestimmt die Schwierigkeit).
+1. genau **eine** Lösung ergeben (exakter Löser) und
+2. sich **ohne Raten** lösen lassen (logischer Löser; die Zahl der nötigen
+   kurzen „Was wäre wenn“-Proben bestimmt die Schwierigkeit).
+
+Der logische Löser schreibt dabei den **Lösungsweg** mit, der hinten bei den
+Lösungen abgedruckt wird. Fertige Rätsel landen in `.cache/` – ein erneuter
+Bau ist dann in einer Sekunde fertig, solange Fall-Datei und Generator gleich
+bleiben (reine Layout-Änderungen erzwingen keine Neuberechnung).
 
 ## Aufbau
 
@@ -46,7 +53,8 @@ streicht so lange Hinweise, bis ein knapper Satz übrig bleibt, der
 | `krimi/katalog.py` | Gegenstände (Name, Grammatik, besetzbar?, Icon) |
 | `krimi/fall.py` | Fall-Datei laden, Geometrie |
 | `krimi/hinweise.py` | Hinweis-Typen und ihre deutschen Sätze |
-| `krimi/loeser.py` | exakter und logischer Löser |
+| `krimi/loeser.py` | exakter Löser (Eindeutigkeit) |
+| `krimi/logik.py` | logischer Löser mit Lösungsweg-Protokoll |
 | `krimi/generator.py` | Rätsel erzeugen und bewerten |
 | `krimi/druck.py` | Seiten-Layout (HTML/SVG) |
 | `werkzeuge/pdf.cjs` | HTML → PDF über Chromium |

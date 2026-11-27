@@ -6,7 +6,7 @@ Wird aus einer TOML-Datei unter faelle/ geladen.
 from __future__ import annotations
 
 import tomllib
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
 
 from .katalog import KATALOG, Objekt
@@ -45,6 +45,7 @@ class Fall:
     personen: list[Person]                  # Verdächtige zuerst, Opfer zuletzt
     schwierigkeit: str = "mittel"
     quelle: Path | None = None
+    stil: dict = field(default_factory=dict)
 
     # --- Geometrie -------------------------------------------------------
     @property
@@ -147,4 +148,5 @@ def lade_fall(pfad: str | Path) -> Fall:
         personen=personen,
         schwierigkeit=daten.get("schwierigkeit", "mittel"),
         quelle=pfad,
+        stil=daten.get("stil", {}),
     )

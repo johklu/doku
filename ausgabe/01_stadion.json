@@ -4,28 +4,37 @@
     "titel": "Abpfiff in Müngersdorf",
     "taeter": "René",
     "positionen": {
-      "Leah": "A5",
-      "Carli": "H4",
-      "Stephan": "G1",
-      "Thomas": "E3",
-      "Timo": "D2",
-      "René": "B7",
-      "Okon-Engstler": "C8",
-      "Ragnar": "F6"
+      "Leah": "D8",
+      "Carli": "G1",
+      "Stephan": "H5",
+      "Thomas": "F2",
+      "Timo": "E3",
+      "René": "A7",
+      "Okon-Engstler": "B6",
+      "Ragnar": "C4"
     },
     "hinweise": [
-      "Carli befand sich nicht neben einem Tor.",
-      "Stephan befand sich weiter rechts als Ragnar.",
-      "Ragnar hatte den ganzen Bereich für sich allein.",
+      "Leah war auf der Tribüne, aber nicht neben einem Tor.",
+      "Carli und Thomas befanden sich schräg nebeneinander.",
+      "Stephan befand sich weiter rechts als Timo.",
       "Thomas und Timo befanden sich schräg nebeneinander.",
-      "Thomas befand sich weiter links als Ragnar.",
-      "René befand sich direkt neben der Dusche.",
-      "Carli saß auf einem Sitz.",
-      "Thomas befand sich direkt neben dem Buffet.",
-      "Leah saß auf einem Sitz.",
-      "Stephan befand sich weiter oben als Timo.",
-      "Carli befand sich weiter oben als Ragnar."
+      "René stand unter der Dusche.",
+      "Ragnar war auf dem Spielfeld, direkt neben der Pflanze.",
+      "Timo saß in einem Sessel, direkt neben dem Buffet."
     ],
-    "proben": 2
+    "proben": 1,
+    "loesungsweg": [
+      "Timo saß in einem Sessel, direkt neben dem Buffet – das geht nur auf F2 oder E3.",
+      "René stand unter der Dusche – das ist nur auf A7 möglich.",
+      "Ragnar war auf dem Spielfeld, direkt neben der Pflanze – das ist nur auf C4 möglich.",
+      "Carli, Thomas und Timo (F2 oder E3) passen zusammen nur in die Zeilen 1, 2 und 3 – diese sind damit für alle anderen gesperrt.",
+      "In Spalte D kann nur noch Leah stehen – also auf D8.",
+      "In Spalte H kann nur noch Stephan stehen – also auf H5.",
+      "Angenommen, Timo stünde auf F2. Dann könnte Carli den Hinweis „Carli und Thomas befanden sich schräg nebeneinander“ nicht mehr erfüllen. Also scheidet F2 für Timo aus.",
+      "Damit bleibt für Timo nur noch E3.",
+      "Thomas und Timo befanden sich schräg nebeneinander – da Timo schon feststeht, bleibt für Thomas nur F2.",
+      "Carli und Thomas befanden sich schräg nebeneinander – von den passenden Feldern ist nur noch G1 frei.",
+      "Übrig bleibt B6: Dort lag Okon-Engstler. In der Kabine war sonst nur René. René ist der Täter!"
+    ]
   }
 ]

@@ -1,6 +1,9 @@
 """Setzt Rätsel als druckfertige HTML-Seiten (A4) – daraus wird das PDF.
 
-Seiten:  Spielregeln · je Fall eine Rätselseite · Lösungsseiten am Ende.
+Seiten:  Spielregeln · je Fall eine Rätselseite · Lösungen (mit Lösungsweg).
+
+Farben und Schriften kommen aus der Tabelle [stil] des jeweiligen Falls, so
+dass jedes Rätsel seinen eigenen Look haben kann.
 """
 
 from __future__ import annotations
@@ -12,45 +15,68 @@ from .fall import Fall
 from .generator import Raetsel
 from .katalog import KATALOG
 
-TINTE = "#231d17"
-ROT = "#b3261e"
 ZELLE = 100
 RAND = 56   # Platz für die Koordinaten A–H / 1–8
+SCHRIFT_ORDNER = Path(__file__).resolve().parent.parent / "schriften"
+
+# Verfügbare Schriften: Name -> [(Datei, Gewicht, Stil)]
+SCHRIFTEN = {
+    "Special Elite": [("SpecialElite-Regular.ttf", 400, "normal")],
+    "Crimson Pro": [("CrimsonPro-Regular.ttf", 400, "normal"),
+                    ("CrimsonPro-SemiBold.ttf", 600, "normal"),
+                    ("CrimsonPro-Italic.ttf", 400, "italic")],
+}
+
+STANDARD_STIL = {
+    "akzent": "#b3261e",          # Rot für Überschriften-Details und das Opfer
+    "tinte": "#231d17",           # Text- und Linienfarbe
+    "titelschrift": "Special Elite",
+    "textschrift": "Crimson Pro",
+}
 
 
 def _e(s: str) -> str:
     return html.escape(s, quote=True)
 
 
+def stil_von(fall: Fall | None) -> dict:
+    s = dict(STANDARD_STIL)
+    if fall is not None:
+        s.update(fall.stil)
+    return s
+
+
+def _stil_attr(fall: Fall | None) -> str:
+    s = stil_von(fall)
+    return (f'style="--akzent:{s["akzent"]};--tinte:{s["tinte"]};'
+            f"--titel:'{s['titelschrift']}';--text:'{s['textschrift']}'\"")
+
+
 # ---------------------------------------------------------------------------
 # Plan als SVG
 # ---------------------------------------------------------------------------
 
-def plan_svg(fall: Fall, loesung: dict | None = None, opfer_rot: bool = True) -> str:
+def plan_svg(fall: Fall, loesung: dict | None = None) -> str:
     n = fall.n
     breite = RAND + n * ZELLE + 12
     teile = [f'<svg class="plan" viewBox="0 0 {breite} {breite}" '
              f'xmlns="http://www.w3.org/2000/svg">']
 
-    # Bereichsfarben
     for r in range(n):
         for c in range(n):
-            farbe = fall.bereiche[fall.plan[r][c]].farbe
-            teile.append(f'<rect x="{RAND + c * ZELLE}" y="{RAND + r * ZELLE}" '
-                         f'width="{ZELLE}" height="{ZELLE}" fill="{farbe}"/>')
-            if fall.bereiche[fall.plan[r][c]].streifen and c % 2 == 0:
-                # Rasen-Mähstreifen
-                teile.append(f'<rect x="{RAND + c * ZELLE}" y="{RAND + r * ZELLE}" '
-                             f'width="{ZELLE}" height="{ZELLE}" fill="#000" '
-                             f'fill-opacity="0.045"/>')
+            bereich = fall.bereiche[fall.plan[r][c]]
+            x, y = RAND + c * ZELLE, RAND + r * ZELLE
+            teile.append(f'<rect x="{x}" y="{y}" width="{ZELLE}" height="{ZELLE}" '
+                         f'fill="{bereich.farbe}"/>')
+            if bereich.streifen and c % 2 == 0:
+                teile.append(f'<rect x="{x}" y="{y}" width="{ZELLE}" height="{ZELLE}" '
+                             f'fill="#000" fill-opacity="0.045"/>')
 
-    # feines Raster
     for i in range(1, n):
         p = RAND + i * ZELLE
         teile.append(f'<line x1="{p}" y1="{RAND}" x2="{p}" y2="{RAND + n * ZELLE}" class="raster"/>')
         teile.append(f'<line x1="{RAND}" y1="{p}" x2="{RAND + n * ZELLE}" y2="{p}" class="raster"/>')
 
-    # Gegenstände
     for r in range(n):
         for c in range(n):
             o = fall.objekte[r][c]
@@ -61,7 +87,6 @@ def plan_svg(fall: Fall, loesung: dict | None = None, opfer_rot: bool = True) ->
             teile.append(f'<g class="{klasse}" transform="translate({x} {y}) scale(0.72)">'
                          f'{o.icon}</g>')
 
-    # Bereichsgrenzen (dicke Linien)
     for r in range(n):
         for c in range(n):
             x, y = RAND + c * ZELLE, RAND + r * ZELLE
@@ -74,21 +99,18 @@ def plan_svg(fall: Fall, loesung: dict | None = None, opfer_rot: bool = True) ->
     teile.append(f'<rect x="{RAND}" y="{RAND}" width="{n * ZELLE}" height="{n * ZELLE}" '
                  f'class="aussen"/>')
 
-    # Koordinaten
     for i in range(n):
         teile.append(f'<text x="{RAND + i * ZELLE + ZELLE / 2}" y="{RAND - 16}" '
                      f'class="koord">{"ABCDEFGHIJKL"[i]}</text>')
         teile.append(f'<text x="{RAND - 24}" y="{RAND + i * ZELLE + ZELLE / 2 + 11}" '
                      f'class="koord">{i + 1}</text>')
 
-    # Lösung eintragen
     if loesung:
         for p, (r, c) in loesung.items():
             person = fall.personen[p]
             cx, cy = RAND + c * ZELLE + ZELLE / 2, RAND + r * ZELLE + ZELLE / 2
-            farbe = ROT if (person.opfer and opfer_rot) else TINTE
-            teile.append(f'<circle cx="{cx}" cy="{cy}" r="34" fill="{farbe}" '
-                         f'stroke="#fff" stroke-width="5"/>')
+            klasse = "kreis opfer" if person.opfer else "kreis"
+            teile.append(f'<circle cx="{cx}" cy="{cy}" r="34" class="{klasse}"/>')
             teile.append(f'<text x="{cx}" y="{cy + 11}" class="marke">{_e(person.kurz)}</text>')
 
     teile.append("</svg>")
@@ -98,16 +120,21 @@ def plan_svg(fall: Fall, loesung: dict | None = None, opfer_rot: bool = True) ->
 def icon_svg(kuerzel: str) -> str:
     o = KATALOG[kuerzel]
     klasse = "obj frei" if o.besetzbar else "obj fest"
-    return (f'<svg class="icon" viewBox="0 0 100 100"><g class="{klasse}">{o.icon}</g></svg>')
+    return f'<svg class="icon" viewBox="0 0 100 100"><g class="{klasse}">{o.icon}</g></svg>'
+
+
+def _chip(person) -> str:
+    klasse = "chip rot" if person.opfer else "chip"
+    return f'<span class="{klasse}">{_e(person.kurz)}</span>'
 
 
 # ---------------------------------------------------------------------------
 # Seiten
 # ---------------------------------------------------------------------------
 
-def _seite_regeln() -> str:
+def _seite_regeln(fall: Fall | None) -> str:
     return f"""
-<section class="seite regeln">
+<section class="seite regeln" {_stil_attr(fall)}>
   <div class="kopf"><div class="akte">Vor dem ersten Fall</div>
   <h1>So wird ermittelt</h1></div>
   <p class="intro">In jedem Fall ist ein Mensch zu Tode gekommen. Alle Beteiligten
@@ -127,8 +154,9 @@ def _seite_regeln() -> str:
     <li><b>Der Täter.</b> Der Täter ist die <i>einzige</i> Person, die sich mit dem
         Opfer im selben Bereich befand. Im Bereich des Opfers ist also genau eine
         weitere Person.</li>
-    <li><b>Die Hinweise sind alle wahr.</b> Jeder Fall hat genau eine Lösung, und
-        sie lässt sich ohne Raten finden.</li>
+    <li><b>Ein Hinweis pro Person.</b> Zu jeder verdächtigen Person gibt es genau
+        einen Hinweis. Alle Hinweise sind wahr. Jeder Fall hat genau eine Lösung,
+        und sie lässt sich ohne Raten finden.</li>
   </ol>
 
   <h2>Kleines Wörterbuch</h2>
@@ -148,8 +176,12 @@ def _seite_regeln() -> str:
     <li>Schreib die Kürzel der Personen mit Bleistift in die Felder und streiche
         Felder durch, die nicht in Frage kommen.</li>
     <li>Ist eine Person gesetzt, sind ihre ganze Zeile und Spalte für alle anderen tabu.</li>
+    <li>Schau dir die Bereiche an: Zwei Personen, die beide in einen Bereich über
+        nur zwei Zeilen müssen, belegen genau diese beiden Zeilen.</li>
     <li>Das Opfer wird in keinem Hinweis erwähnt – es steht am Ende auf dem
         einzigen Feld, das noch übrig bleibt.</li>
+    <li>Wer nicht weiterkommt, findet hinten im Buch zu jedem Fall einen kurzen
+        Lösungsweg.</li>
   </ul>
 </section>"""
 
@@ -159,10 +191,9 @@ def _seite_fall(r: Raetsel) -> str:
     verdaechtige = [p for p in f.personen if not p.opfer]
     opfer = f.personen[f.opfer_index]
 
-    personen_html = "".join(
-        f'<li><span class="chip">{_e(p.kurz)}</span>{_e(p.name)}</li>' for p in verdaechtige)
-    personen_html += (f'<li class="opfer"><span class="chip rot">{_e(opfer.kurz)}</span>'
-                      f'{_e(opfer.name)} <small>(Opfer)</small></li>')
+    personen_html = "".join(f"<li>{_chip(p)}{_e(p.name)}</li>" for p in verdaechtige)
+    personen_html += (f'<li class="opfer">{_chip(opfer)}{_e(opfer.name)} '
+                      f'<small>(Opfer)</small></li>')
 
     bereiche_html = "".join(
         f'<li><span class="farbfeld" style="background:{b.farbe}"></span>{_e(b.name)}</li>'
@@ -179,11 +210,12 @@ def _seite_fall(r: Raetsel) -> str:
         f'<span class="{"ok" if KATALOG[k].besetzbar else "nein"}">'
         f'{"✓" if KATALOG[k].besetzbar else "✕"}</span></li>' for k in arten)
 
-    hinweise_html = "".join(f"<li>{_e(h.text(f))}</li>" for h in r.hinweise)
-    spalten = " zweispaltig" if len(r.hinweise) > 9 else ""
+    hinweise_html = "".join(
+        f"<li>{_chip(f.personen[h.subjekt])}<span>{_e(h.text(f))}</span></li>"
+        for h in sorted(r.hinweise, key=lambda h: h.subjekt))
 
     return f"""
-<section class="seite fall">
+<section class="seite fall" {_stil_attr(f)}>
   <div class="kopf">
     <div class="akte">Fall {f.nummer:02d} · {_e(f.schwierigkeit)}</div>
     <h1>{_e(f.titel)}</h1>
@@ -199,7 +231,7 @@ def _seite_fall(r: Raetsel) -> str:
   </div>
   <ul class="legende">{legende_html}</ul>
   <h2>Hinweise</h2>
-  <ol class="hinweise{spalten}">{hinweise_html}</ol>
+  <ul class="hinweise">{hinweise_html}</ul>
   <div class="urteil"><span>Täter:</span><span class="linie"></span></div>
 </section>"""
 
@@ -209,133 +241,156 @@ def _block_loesung(r: Raetsel) -> str:
     t = f.personen[r.taeter]
     o = f.personen[f.opfer_index]
     bereich = f.bereiche[f.bereich(r.loesung[f.opfer_index])]
-    zeilen = "".join(
-        f"<tr><td><span class='chip{' rot' if p.opfer else ''}'>{_e(p.kurz)}</span>{_e(p.name)}</td>"
-        f"<td>{f.koordinate(r.loesung[i])}</td>"
-        f"<td>{_e(f.bereiche[f.bereich(r.loesung[i])].name)}</td></tr>"
-        for i, p in enumerate(f.personen))
+    schritte = "".join(f"<li>{_e(s)}</li>" for s in r.schritte)
     return f"""
-  <div class="loesungsblock">
+  <div class="loesungsblock" {_stil_attr(f)}>
     <h2>Fall {f.nummer:02d} · {_e(f.titel)}</h2>
     <div class="aufloesung">Es war <b>{_e(t.name)}</b> – als einzige Person mit
       {_e(o.name)} {_e(bereich.praep)}.</div>
-    <div class="haupt">
+    <div class="loesung-inhalt">
       <figure class="klein">{plan_svg(f, r.loesung)}</figure>
-      <aside><table class="positionen"><tbody>{zeilen}</tbody></table></aside>
+      <div><h3>Lösungsweg</h3><ol class="schritte">{schritte}</ol></div>
     </div>
   </div>"""
 
 
-def _seiten_loesungen(raetsel: list[Raetsel], je_seite: int = 2) -> list[str]:
-    seiten = []
-    for i in range(0, len(raetsel), je_seite):
-        bloecke = "".join(_block_loesung(r) for r in raetsel[i:i + je_seite])
+def _hoehe_mm(r: Raetsel) -> float:
+    """Grobe Höhe eines Lösungsblocks: Kopf + max(Plan, Text)."""
+    zeilen = sum(1 + len(s) // 62 for s in r.schritte)
+    return 24 + max(76, 8 + zeilen * 4.9)
+
+
+def _seiten_loesungen(raetsel: list[Raetsel]) -> list[str]:
+    seiten, aktuell, rest = [], [], 0.0
+    nutzbar, kopf_hoehe = 266.0, 30.0
+    for r in raetsel:
+        h = _hoehe_mm(r)
+        if aktuell and h > rest:
+            seiten.append(aktuell)
+            aktuell, rest = [], nutzbar
+        if not seiten and not aktuell:
+            rest = nutzbar - kopf_hoehe
+        aktuell.append(r)
+        rest -= h
+    if aktuell:
+        seiten.append(aktuell)
+    html_seiten = []
+    for i, gruppe in enumerate(seiten):
         kopf = ('<div class="kopf"><div class="akte">Akten geschlossen</div>'
                 '<h1>Lösungen</h1></div>') if i == 0 else ""
-        seiten.append(f'<section class="seite loesung">{kopf}{bloecke}</section>')
-    return seiten
+        bloecke = "".join(_block_loesung(r) for r in gruppe)
+        html_seiten.append(f'<section class="seite loesung" {_stil_attr(gruppe[0].fall)}>'
+                           f'{kopf}{bloecke}</section>')
+    return html_seiten
+
+
+def _font_faces() -> str:
+    regeln = []
+    for name, dateien in SCHRIFTEN.items():
+        for datei, gewicht, stil in dateien:
+            pfad = SCHRIFT_ORDNER / datei
+            if pfad.exists():
+                regeln.append(f'@font-face {{ font-family: "{name}"; src: url("{pfad.as_uri()}"); '
+                              f'font-weight: {gewicht}; font-style: {stil}; }}')
+    return "\n".join(regeln)
 
 
 def buch_html(raetsel: list[Raetsel], mit_regeln: bool = True) -> str:
-    schriften = (Path(__file__).resolve().parent.parent / "schriften").as_uri()
     seiten = []
     if mit_regeln:
-        seiten.append(_seite_regeln())
+        seiten.append(_seite_regeln(raetsel[0].fall if raetsel else None))
     seiten += [_seite_fall(r) for r in raetsel]
     seiten += _seiten_loesungen(raetsel)
     return f"""<!doctype html>
 <html lang="de"><head><meta charset="utf-8"><title>Mordsrätsel</title>
 <style>
-@font-face {{ font-family: "Special Elite"; src: url("{schriften}/SpecialElite-Regular.ttf"); }}
-@font-face {{ font-family: "Crimson Pro"; src: url("{schriften}/CrimsonPro-Regular.ttf"); font-weight: 400; }}
-@font-face {{ font-family: "Crimson Pro"; src: url("{schriften}/CrimsonPro-SemiBold.ttf"); font-weight: 600; }}
-@font-face {{ font-family: "Crimson Pro"; src: url("{schriften}/CrimsonPro-Italic.ttf"); font-style: italic; }}
+{_font_faces()}
 {CSS}
 </style></head><body>
 {''.join(seiten)}
 </body></html>"""
 
 
-CSS = f"""
-@page {{ size: A4; margin: 0; }}
-* {{ box-sizing: border-box; }}
-html, body {{ margin: 0; padding: 0; background: #fff; }}
-body {{ font-family: "Crimson Pro", Georgia, serif; color: {TINTE}; font-size: 12.5pt;
-        line-height: 1.32; -webkit-print-color-adjust: exact; print-color-adjust: exact; }}
-.seite {{ width: 210mm; height: 297mm; padding: 15mm 17mm 13mm; position: relative;
-          overflow: hidden; page-break-after: always; break-after: page; }}
-.kopf {{ border-bottom: 2px solid {TINTE}; padding-bottom: 2.5mm; margin-bottom: 4mm; }}
-.akte {{ font-family: "Special Elite", monospace; color: {ROT}; letter-spacing: .12em;
-         text-transform: uppercase; font-size: 10.5pt; }}
-h1 {{ font-family: "Special Elite", monospace; font-weight: 400; font-size: 27pt;
-      margin: 1mm 0 0; line-height: 1.1; }}
-.ort {{ font-style: italic; font-size: 12pt; margin-top: 1mm; }}
-h2 {{ font-family: "Special Elite", monospace; font-weight: 400; font-size: 14pt;
-      margin: 5mm 0 2mm; letter-spacing: .04em; }}
-h3 {{ font-family: "Special Elite", monospace; font-weight: 400; font-size: 11pt;
-      margin: 0 0 1.5mm; letter-spacing: .06em; text-transform: uppercase; }}
-.intro {{ font-style: italic; margin: 0 0 4mm; font-size: 12.5pt; }}
+CSS = """
+@page { size: A4; margin: 0; }
+* { box-sizing: border-box; }
+html, body { margin: 0; padding: 0; background: #fff; }
+body { -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+.seite { width: 210mm; height: 297mm; padding: 15mm 17mm 13mm; position: relative;
+         overflow: hidden; page-break-after: always; break-after: page;
+         font-family: var(--text), Georgia, serif; color: var(--tinte); font-size: 12.5pt;
+         line-height: 1.32; }
+.kopf { border-bottom: 2px solid var(--tinte); padding-bottom: 2.5mm; margin-bottom: 4mm; }
+.akte { font-family: var(--titel), monospace; color: var(--akzent); letter-spacing: .12em;
+        text-transform: uppercase; font-size: 10.5pt; }
+h1 { font-family: var(--titel), monospace; font-weight: 400; font-size: 27pt;
+     margin: 1mm 0 0; line-height: 1.1; }
+.ort { font-style: italic; font-size: 12pt; margin-top: 1mm; }
+h2 { font-family: var(--titel), monospace; font-weight: 400; font-size: 14pt;
+     margin: 5mm 0 2mm; letter-spacing: .04em; }
+h3 { font-family: var(--titel), monospace; font-weight: 400; font-size: 11pt;
+     margin: 0 0 1.5mm; letter-spacing: .06em; text-transform: uppercase; }
+.intro { font-style: italic; margin: 0 0 4mm; font-size: 12.5pt; }
 
-.haupt {{ display: flex; gap: 6mm; align-items: flex-start; }}
-.haupt figure {{ margin: 0; width: 116mm; flex: none; }}
-.haupt aside {{ flex: 1; min-width: 0; }}
-.haupt aside ul {{ list-style: none; padding: 0; margin: 0 0 4mm; }}
-.plan {{ width: 100%; height: auto; display: block; }}
-.plan .raster {{ stroke: {TINTE}; stroke-opacity: .22; stroke-width: 1.6; }}
-.plan .grenze {{ stroke: {TINTE}; stroke-width: 7; stroke-linecap: round; }}
-.plan .aussen {{ fill: none; stroke: {TINTE}; stroke-width: 9; }}
-.plan .koord {{ font-family: "Special Elite", monospace; font-size: 30px; fill: {TINTE};
-               text-anchor: middle; }}
-.plan .marke {{ font-family: "Special Elite", monospace; font-size: 31px; fill: #fff;
-               text-anchor: middle; }}
-.obj path, .obj rect, .obj circle {{ fill: none; stroke: #3a3129; stroke-width: 5;
-               stroke-linejoin: round; stroke-linecap: round; }}
-.obj .f {{ fill: #ffffff; fill-opacity: .85; }}
-.obj .k {{ fill: #4a4037; }}
-.obj .w {{ stroke: #f4efe6; stroke-width: 4; fill: none; }}
-.obj .n {{ stroke-width: 2.4; stroke-opacity: .8; }}
+.haupt { display: flex; gap: 6mm; align-items: flex-start; }
+.haupt figure { margin: 0; width: 110mm; flex: none; }
+.haupt aside { flex: 1; min-width: 0; }
+.haupt aside ul { list-style: none; padding: 0; margin: 0 0 4mm; }
+.plan { width: 100%; height: auto; display: block; }
+.plan .raster { stroke: var(--tinte); stroke-opacity: .22; stroke-width: 1.6; }
+.plan .grenze { stroke: var(--tinte); stroke-width: 7; stroke-linecap: round; }
+.plan .aussen { fill: none; stroke: var(--tinte); stroke-width: 9; }
+.plan .koord { font-family: var(--titel), monospace; font-size: 30px; fill: var(--tinte);
+               text-anchor: middle; }
+.plan .kreis { fill: var(--tinte); stroke: #fff; stroke-width: 5; }
+.plan .kreis.opfer { fill: var(--akzent); }
+.plan .marke { font-family: var(--titel), monospace; font-size: 31px; fill: #fff;
+               text-anchor: middle; }
+.obj path, .obj rect, .obj circle { fill: none; stroke: var(--tinte); stroke-width: 5;
+               stroke-linejoin: round; stroke-linecap: round; }
+.obj .f { fill: #ffffff; fill-opacity: .85; }
+.obj .k { fill: var(--tinte); fill-opacity: .85; }
+.obj .w { stroke: #f4efe6; stroke-width: 4; fill: none; }
+.obj .n { stroke-width: 2.4; stroke-opacity: .8; }
 
-.personen li {{ display: flex; align-items: center; gap: 2.2mm; margin-bottom: 1.3mm; }}
-.personen li.opfer {{ color: {ROT}; }}
-.personen small {{ font-style: italic; }}
-.chip {{ display: inline-flex; align-items: center; justify-content: center; width: 7.2mm;
-         height: 7.2mm; border-radius: 50%; background: {TINTE}; color: #fff; flex: none;
-         font-family: "Special Elite", monospace; font-size: 9.5pt; margin-right: 2mm; }}
-.personen .chip {{ margin-right: 0; }}
-.chip.rot {{ background: {ROT}; }}
-.bereiche li {{ display: flex; align-items: center; gap: 2.2mm; margin-bottom: 1mm; }}
-.farbfeld {{ width: 6mm; height: 4.2mm; border: 1.3px solid {TINTE}; display: inline-block; }}
-.legende {{ list-style: none; padding: 0; margin: 3mm 0 0; display: grid;
-            grid-template-columns: repeat(4, 1fr); gap: .6mm 3mm; font-size: 11pt; }}
-.legende li {{ display: grid; grid-template-columns: 7mm 1fr auto; align-items: center;
-               gap: 1.5mm; }}
-.legende li > span:last-child {{ margin-right: 2mm; }}
-.icon {{ width: 7mm; height: 7mm; }}
-.ok {{ color: #2f6b2f; font-weight: 600; }}
-.nein {{ color: {ROT}; font-weight: 600; }}
+.personen li { display: flex; align-items: center; gap: 2.2mm; margin-bottom: 1.3mm; }
+.personen li.opfer { color: var(--akzent); }
+.personen small { font-style: italic; }
+.chip { display: inline-flex; align-items: center; justify-content: center; width: 7.2mm;
+        height: 7.2mm; border-radius: 50%; background: var(--tinte); color: #fff; flex: none;
+        font-family: var(--titel), monospace; font-size: 9.5pt; }
+.chip.rot { background: var(--akzent); }
+.bereiche li { display: flex; align-items: center; gap: 2.2mm; margin-bottom: 1mm; }
+.farbfeld { width: 6mm; height: 4.2mm; border: 1.3px solid var(--tinte); display: inline-block; }
+.legende { list-style: none; padding: 0; margin: 3mm 0 0; display: grid;
+           grid-template-columns: repeat(4, 1fr); gap: .6mm 3mm; font-size: 11pt; }
+.legende li { display: grid; grid-template-columns: 7mm 1fr auto; align-items: center;
+              gap: 1.5mm; }
+.legende li > span:last-child { margin-right: 2mm; }
+.icon { width: 7mm; height: 7mm; }
+.ok { color: #2f6b2f; font-weight: 600; }
+.nein { color: var(--akzent); font-weight: 600; }
 
-.hinweise {{ margin: 0; padding-left: 6mm; }}
-.hinweise li {{ margin-bottom: 1.4mm; padding-left: 1mm; break-inside: avoid; }}
-.hinweise li::marker {{ font-family: "Special Elite", monospace; color: {ROT}; }}
-.hinweise.zweispaltig {{ columns: 2; column-gap: 9mm; }}
-.urteil {{ position: absolute; left: 17mm; right: 17mm; bottom: 14mm; display: flex;
-           gap: 3mm; align-items: baseline; font-family: "Special Elite", monospace;
-           font-size: 13pt; }}
-.urteil .linie {{ flex: 1; border-bottom: 1.5px dashed {TINTE}; max-width: 75mm; }}
+.hinweise { list-style: none; margin: 0; padding: 0; }
+.hinweise li { display: flex; align-items: center; gap: 3mm; margin-bottom: 1.3mm; }
+.urteil { margin-top: 5mm; display: flex;
+          gap: 3mm; align-items: baseline; font-family: var(--titel), monospace;
+          font-size: 13pt; }
+.urteil .linie { flex: 1; border-bottom: 1.5px dashed var(--tinte); max-width: 75mm; }
 
-.regelliste li, .tipps li {{ margin-bottom: 2.2mm; }}
-.regelliste {{ padding-left: 6mm; }}
-.woerter {{ display: grid; grid-template-columns: 48mm 1fr; gap: 1.6mm 4mm; margin: 0; }}
-.woerter dt {{ font-weight: 600; }}
-.woerter dd {{ margin: 0; }}
+.regelliste li, .tipps li { margin-bottom: 2mm; }
+.regelliste { padding-left: 6mm; }
+.woerter { display: grid; grid-template-columns: 48mm 1fr; gap: 1.6mm 4mm; margin: 0; }
+.woerter dt { font-weight: 600; }
+.woerter dd { margin: 0; }
 
-.loesungsblock {{ margin-bottom: 7mm; }}
-.loesungsblock h2 {{ margin-top: 2mm; }}
-.aufloesung {{ font-size: 13pt; margin: 0 0 3mm; }}
-.aufloesung b {{ color: {ROT}; }}
-.haupt figure.klein {{ width: 88mm; }}
-.positionen {{ border-collapse: collapse; width: 100%; font-size: 11.5pt; white-space: nowrap; }}
-.positionen td {{ padding: 1mm 1.5mm; border-bottom: 1px solid #d8d0c4; vertical-align: middle; }}
-.positionen td:first-child {{ display: flex; align-items: center; }}
-.positionen .chip {{ width: 6.4mm; height: 6.4mm; font-size: 8.5pt; }}
+.loesungsblock { margin-bottom: 6mm; }
+.loesungsblock h2 { margin-top: 2mm; }
+.aufloesung { font-size: 13pt; margin: 0 0 3mm; }
+.aufloesung b { color: var(--akzent); }
+.loesung-inhalt { display: flex; gap: 6mm; align-items: flex-start; }
+.loesung-inhalt figure.klein { margin: 0; width: 72mm; flex: none; }
+.schritte { margin: 0; padding-left: 5.5mm; font-size: 10.5pt; line-height: 1.28; }
+.schritte li { margin-bottom: 1mm; }
+.schritte li::marker { font-family: var(--titel), monospace; color: var(--akzent); }
 """

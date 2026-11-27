@@ -22,6 +22,18 @@ class Hinweis:
     personen: tuple[int, ...] = ()
     allein: int | None = None        # nur für Allein-Hinweise
 
+    @property
+    def subjekt(self) -> int:
+        """Die Person, "zu der" der Hinweis gehört (steht am Satzanfang)."""
+        return self.personen[0]
+
+    # Für kombinierte Hinweise: "saß auf einem Sitz" + ", direkt neben ..."
+    def praedikat(self, fall: Fall) -> str | None:
+        return None
+
+    def zusatz(self, fall: Fall) -> str | None:
+        return None
+
     # Einschränkung für genau eine Person (unär)
     def erlaubt(self, fall: Fall, p: int, z: Zelle) -> bool:
         return True
@@ -66,8 +78,11 @@ class ImBereich(Hinweis):
     def gilt(self, fall, pos):
         return fall.bereich(pos[self.p]) == self.b
 
+    def praedikat(self, fall):
+        return f"war {fall.bereiche[self.b].praep}"
+
     def text(self, fall):
-        return f"{_name(fall, self.p)} war {fall.bereiche[self.b].praep}."
+        return f"{_name(fall, self.p)} {self.praedikat(fall)}."
 
 
 class NichtImBereich(Hinweis):
@@ -103,11 +118,13 @@ class AufObjekt(Hinweis):
     def gilt(self, fall, pos):
         return self.erlaubt(fall, self.p, pos[self.p])
 
-    def text(self, fall):
+    def praedikat(self, fall):
         from .katalog import KATALOG
         o = KATALOG[self.k]
-        phrase = o.auf_best if fall.anzahl_objekt(self.k) == 1 else o.auf_unbest
-        return f"{_name(fall, self.p)} {phrase}."
+        return o.auf_best if fall.anzahl_objekt(self.k) == 1 else o.auf_unbest
+
+    def text(self, fall):
+        return f"{_name(fall, self.p)} {self.praedikat(fall)}."
 
 
 class NebenObjekt(Hinweis):
@@ -126,11 +143,14 @@ class NebenObjekt(Hinweis):
     def gilt(self, fall, pos):
         return self.erlaubt(fall, self.p, pos[self.p])
 
-    def text(self, fall):
+    def zusatz(self, fall):
         from .katalog import KATALOG
         o = KATALOG[self.k]
         art = o.dat_best if fall.anzahl_objekt(self.k) == 1 else o.dat_unbest
-        return f"{_name(fall, self.p)} befand sich direkt neben {art}."
+        return f"direkt neben {art}"
+
+    def text(self, fall):
+        return f"{_name(fall, self.p)} befand sich {self.zusatz(fall)}."
 
 
 class NichtNebenObjekt(Hinweis):
@@ -149,11 +169,16 @@ class NichtNebenObjekt(Hinweis):
     def gilt(self, fall, pos):
         return self.erlaubt(fall, self.p, pos[self.p])
 
-    def text(self, fall):
+    def _art(self, fall):
         from .katalog import KATALOG
         o = KATALOG[self.k]
-        art = o.dat_best if fall.anzahl_objekt(self.k) == 1 else o.dat_unbest
-        return f"{_name(fall, self.p)} befand sich nicht neben {art}."
+        return o.dat_best if fall.anzahl_objekt(self.k) == 1 else o.dat_unbest
+
+    def zusatz(self, fall):
+        return f"aber nicht neben {self._art(fall)}"
+
+    def text(self, fall):
+        return f"{_name(fall, self.p)} befand sich nicht neben {self._art(fall)}."
 
 
 class AmRand(Hinweis):
@@ -172,10 +197,11 @@ class AmRand(Hinweis):
     def gilt(self, fall, pos):
         return self.erlaubt(fall, self.p, pos[self.p])
 
+    def zusatz(self, fall):
+        return "am äußeren Rand des Plans" if self.ja else "nicht am äußeren Rand des Plans"
+
     def text(self, fall):
-        if self.ja:
-            return f"{_name(fall, self.p)} befand sich am äußeren Rand des Plans."
-        return f"{_name(fall, self.p)} befand sich nicht am äußeren Rand des Plans."
+        return f"{_name(fall, self.p)} befand sich {self.zusatz(fall)}."
 
 
 class Niemand(Hinweis):
@@ -255,6 +281,10 @@ class AndererBereich(_Binaer):
 
 
 class Links(_Binaer):
+    @property
+    def subjekt(self):
+        return self.q if self.umgekehrt else self.p
+
     """p steht in einer Spalte weiter links als q."""
     prio = 3
 
@@ -272,6 +302,10 @@ class Links(_Binaer):
 
 
 class Oben(_Binaer):
+    @property
+    def subjekt(self):
+        return self.q if self.umgekehrt else self.p
+
     """p steht in einer Zeile weiter oben als q."""
     prio = 3
 
@@ -297,3 +331,25 @@ class Schraeg(_Binaer):
     def text(self, fall):
         return (f"{_name(fall, self.p)} und {_name(fall, self.q)} "
                 f"befanden sich schräg nebeneinander.")
+
+
+class Kombi(Hinweis):
+    """Zwei Aussagen über dieselbe Person in einem Satz:
+    "Leah saß auf einem Sitz, direkt neben einer Kamera." """
+    prio = 3.5
+
+    def __init__(self, a: Hinweis, b: Hinweis):
+        self.a, self.b = a, b
+        self.personen = a.personen
+
+    def erlaubt(self, fall, p, z):
+        return self.a.erlaubt(fall, p, z) and self.b.erlaubt(fall, p, z)
+
+    def gilt(self, fall, pos):
+        return self.a.gilt(fall, pos) and self.b.gilt(fall, pos)
+
+    def text(self, fall):
+        return f"{_name(fall, self.a.p)} {self.a.praedikat(fall)}, {self.b.zusatz(fall)}."
+
+    def schluessel(self):
+        return ("Kombi", self.a.schluessel(), self.b.schluessel())

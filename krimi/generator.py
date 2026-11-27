@@ -1,13 +1,15 @@
 """Generator: erzeugt aus einem Fall (Plan + Personen) ein lösbares Rätsel.
 
+Jede verdächtige Person bekommt GENAU EINEN Hinweis.
+
 Ablauf
-  1. Eine zufällige Lösung wählen, die zu den vorgegebenen Bereichen der
+  1. Eine zufällige Aufstellung wählen, die zu den vorgegebenen Bereichen der
      Personen passt (jede Zeile/Spalte genau eine Person).
-  2. Alle Aussagen sammeln, die für diese Lösung wahr sind (großer Pool).
-  3. Hinweise nacheinander streichen – langweilige zuerst –, solange das
-     Rätsel eindeutig UND ohne Raten lösbar bleibt.
-  4. Das mehrfach mit verschiedenen Zufallswerten machen und das beste
-     Ergebnis (passende Länge und Schwierigkeit) nehmen.
+  2. Für jede Person alle Aussagen sammeln, die für diese Aufstellung wahr sind.
+  3. Lokale Suche: je Person eine Aussage wählen und so lange austauschen, bis
+     das Rätsel genau eine Lösung hat und sich ohne Raten lösen lässt –
+     mit der gewünschten Schwierigkeit.
+  4. Das mit mehreren Aufstellungen wiederholen und das beste Rätsel nehmen.
 """
 
 from __future__ import annotations
@@ -15,20 +17,23 @@ from __future__ import annotations
 import itertools
 import random
 from collections import Counter
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
 from .fall import Fall, Zelle
 from .hinweise import (AmRand, AndererBereich, AufObjekt, Allein, GleicherBereich,
-                       Hinweis, ImBereich, Links, NebenObjekt, NichtImBereich,
-                       NichtNebenObjekt, Niemand, Oben, Schraeg)
-from .loeser import finde_loesungen, loese_logisch
+                       Hinweis, ImBereich, Kombi, Links, NebenObjekt, NichtImBereich,
+                       NichtNebenObjekt, Oben, Schraeg)
+from .logik import bewerte, loese_logisch
+from .loeser import finde_loesungen
 
-# Ziele je Schwierigkeitsgrad: (min Proben, max Proben, ideale Hinweisanzahl)
+# Schwierigkeit = Anzahl nötiger "Was wäre wenn"-Proben (min, max)
 ZIELE = {
-    "leicht": (0, 0, 12),
-    "mittel": (1, 4, 11),
-    "schwer": (3, 12, 9),
+    "leicht": (0, 0),
+    "mittel": (1, 3),
+    "schwer": (3, 8),
 }
+ZAEHL_LIMIT = 60
+MAX_KETTE = 3   # eine Probe darf höchstens so viele Folgerungen brauchen
 
 
 @dataclass
@@ -37,6 +42,7 @@ class Raetsel:
     loesung: dict[int, Zelle]
     hinweise: list[Hinweis]
     proben: int
+    schritte: list[str] = field(default_factory=list)
 
     @property
     def taeter(self) -> int:
@@ -54,24 +60,18 @@ def alle_aufstellungen(fall: Fall) -> list[dict[int, Zelle]]:
     for i, p in enumerate(fall.personen):
         nach_bereich.setdefault(p.bereich, []).append(i)
 
-    ergebnis = []
+    aufstellungen = []
     for perm in itertools.permutations(range(n)):
         zellen = [(r, perm[r]) for r in range(n)]
         if not all(fall.besetzbar(z) for z in zellen):
             continue
         if Counter(fall.bereich(z) for z in zellen) != soll:
             continue
-        ergebnis.append(zellen)
-
-    aufstellungen = []
-    for zellen in ergebnis:
         je_bereich: dict[str, list[Zelle]] = {}
         for z in zellen:
             je_bereich.setdefault(fall.bereich(z), []).append(z)
-        # alle Zuordnungen Personen -> Zellen innerhalb der Bereiche
-        teile = []
-        for b, personen in nach_bereich.items():
-            teile.append([(personen, perm) for perm in itertools.permutations(je_bereich[b])])
+        teile = [[(personen, zs) for zs in itertools.permutations(je_bereich[b])]
+                 for b, personen in nach_bereich.items()]
         for kombi in itertools.product(*teile):
             pos = {}
             for personen, zs in kombi:
@@ -80,106 +80,142 @@ def alle_aufstellungen(fall: Fall) -> list[dict[int, Zelle]]:
     return aufstellungen
 
 
-def hinweis_pool(fall: Fall, pos: dict[int, Zelle], rng: random.Random) -> list[Hinweis]:
+def kandidaten(fall: Fall, pos: dict[int, Zelle], p: int) -> list[Hinweis]:
+    """Alle wahren Aussagen, deren Satz mit Person p beginnt."""
     P = len(fall.personen)
     v = fall.opfer_index
-    verdaechtige = [p for p in range(P) if p != v]
-    arten = sorted({fall.objekt(z).kuerzel for z in fall.zellen() if fall.objekt(z)})
-    pool: list[Hinweis] = []
+    z = pos[p]
+    b = fall.bereich(z)
+    liste: list[Hinweis] = []
 
-    for p in verdaechtige:
-        z = pos[p]
-        b = fall.bereich(z)
-        pool.append(ImBereich(p, b))
-        for andere in fall.bereiche:
-            if andere != b:
-                pool.append(NichtImBereich(p, andere))
-        o = fall.objekt(z)
-        if o is not None:
-            pool.append(AufObjekt(p, o.kuerzel))
-        nachbar_arten = {fall.objekt(nz).kuerzel for nz in fall.nachbarn4(z) if fall.objekt(nz)}
-        for k in nachbar_arten:
-            h = NebenObjekt(p, k)
-            if fall.anzahl_objekt(k) >= 8:      # "neben einem Sitz" ist fast nichtssagend
-                h.prio = 2
-            pool.append(h)
-        # "nicht neben X" nur, wenn X im eigenen Bereich überhaupt eine Rolle spielt
-        relevant = {fall.objekt(nz).kuerzel
-                    for bz in fall.bereichs_zellen(b) if fall.besetzbar(bz)
-                    for nz in fall.nachbarn4(bz) if fall.objekt(nz)}
-        for k in sorted(relevant - nachbar_arten):
-            pool.append(NichtNebenObjekt(p, k))
-        rand = z[0] in (0, fall.n - 1) or z[1] in (0, fall.n - 1)
-        pool.append(AmRand(p, rand))
-        if sum(1 for q in range(P) if fall.bereich(pos[q]) == b) == 1:
-            pool.append(Allein(p))
+    erste: list[Hinweis] = [ImBereich(p, b)]
+    zweite: list[Hinweis] = []
+    liste.append(ImBereich(p, b))
+    for andere in fall.bereiche:
+        if andere != b:
+            liste.append(NichtImBereich(p, andere))
+    o = fall.objekt(z)
+    if o is not None:
+        h = AufObjekt(p, o.kuerzel)
+        liste.append(h)
+        erste.append(h)
+    nachbar_arten = {fall.objekt(nz).kuerzel for nz in fall.nachbarn4(z) if fall.objekt(nz)}
+    for k in sorted(nachbar_arten):
+        h = NebenObjekt(p, k)
+        if fall.anzahl_objekt(k) >= 8:      # "neben einem Sitz" ist fast nichtssagend
+            h.prio = 2
+        liste.append(h)
+        zweite.append(h)
+    relevant = {fall.objekt(nz).kuerzel
+                for bz in fall.bereichs_zellen(b) if fall.besetzbar(bz)
+                for nz in fall.nachbarn4(bz) if fall.objekt(nz)}
+    for k in sorted(relevant - nachbar_arten):
+        h = NichtNebenObjekt(p, k)
+        liste.append(h)
+        zweite.append(h)
+    rand = z[0] in (0, fall.n - 1) or z[1] in (0, fall.n - 1)
+    h = AmRand(p, rand)
+    liste.append(h)
+    zweite.append(h)
+    if sum(1 for q in range(P) if fall.bereich(pos[q]) == b) == 1:
+        liste.append(Allein(p))
 
-    for p, q in itertools.combinations(verdaechtige, 2):
-        zp, zq = pos[p], pos[q]
-        a, b = (p, q) if zp[1] < zq[1] else (q, p)
-        pool.append(Links(a, b, umgekehrt=rng.random() < 0.4))
-        a, b = (p, q) if zp[0] < zq[0] else (q, p)
-        pool.append(Oben(a, b, umgekehrt=rng.random() < 0.4))
-        if abs(zp[0] - zq[0]) == 1 and abs(zp[1] - zq[1]) == 1:
-            pool.append(Schraeg(p, q))
-        if fall.bereich(zp) == fall.bereich(zq):
-            pool.append(GleicherBereich(p, q))
+    # Kombinationen nur, wenn beide Teile etwas beitragen
+    frei = [zz for zz in fall.zellen() if fall.besetzbar(zz)]
+
+    def felder(h):
+        return {zz for zz in frei if h.erlaubt(fall, p, zz)}
+
+    for a in erste:
+        fa = felder(a)
+        for c in zweite:
+            fc = felder(c)
+            beide = fa & fc
+            if len(beide) < len(fa) and len(beide) < len(fc):
+                liste.append(Kombi(a, c))
+
+    for q in range(P):
+        if q in (p, v):
+            continue
+        zq = pos[q]
+        liste.append(Links(p, q) if z[1] < zq[1] else Links(q, p, umgekehrt=True))
+        liste.append(Oben(p, q) if z[0] < zq[0] else Oben(q, p, umgekehrt=True))
+        if abs(z[0] - zq[0]) == 1 and abs(z[1] - zq[1]) == 1:
+            liste.append(Schraeg(p, q))
+        if fall.bereich(zq) == b:
+            liste.append(GleicherBereich(p, q))
         else:
-            pool.append(AndererBereich(p, q))
+            liste.append(AndererBereich(p, q))
 
-    belegt = {fall.objekt(z).kuerzel for z in pos.values() if fall.objekt(z)}
-    for k in arten:
-        from .katalog import KATALOG
-        if KATALOG[k].besetzbar and k not in belegt:
-            pool.append(Niemand(k, P))
-
-    assert all(h.gilt(fall, pos) for h in pool)
-    return pool
+    for h in liste:
+        assert h.subjekt == p and h.gilt(fall, pos), h
+    return liste
 
 
-def _erwaehnt(hinweise, p) -> int:
-    return sum(1 for h in hinweise if p in h.personen and not isinstance(h, Niemand))
+def _kosten(fall: Fall, wahl: dict[int, Hinweis], ziel) -> tuple[float, int]:
+    hinweise = list(wahl.values())
+    n = len(finde_loesungen(fall, hinweise, limit=ZAEHL_LIMIT))
+    if n == 0:
+        return 999.0, 0
+    if n > 1:
+        return float(n), 0
+    l = bewerte(fall, hinweise, max_proben=ziel[1] + 3)
+    proben = l.proben
+    if l.ergebnis is None or proben > ziel[1] or l.max_kette > MAX_KETTE:
+        return 1.6, proben          # eindeutig, aber zu schwer
+    if proben < ziel[0]:
+        return 0.6, proben          # eindeutig, aber zu leicht
+    return 0.0, proben
 
 
-def reduziere(fall: Fall, pool: list[Hinweis], rng: random.Random, max_proben: int):
-    """Streicht Hinweise, solange das Rätsel eindeutig und logisch lösbar bleibt."""
-    if len(finde_loesungen(fall, pool)) != 1:
-        return None
-    reihenfolge = sorted(pool, key=lambda h: h.prio + rng.random() * 2.5)
-    aktiv = list(pool)
-    v = fall.opfer_index
-    for h in reihenfolge:
-        # Jede verdächtige Person soll mindestens einmal vorkommen.
-        if any(p != v and _erwaehnt(aktiv, p) == 1 for p in h.personen
-               if not isinstance(h, Niemand)):
-            continue
-        probe = [x for x in aktiv if x is not h]
-        if len(finde_loesungen(fall, probe)) != 1:
-            continue
-        loesung, proben = loese_logisch(fall, probe, max_proben=max_proben)
-        if loesung is None or proben > max_proben:
-            continue
-        aktiv = probe
-    loesung, proben = loese_logisch(fall, aktiv, max_proben=max_proben)
-    return aktiv, proben
+def _gewicht(h: Hinweis) -> float:
+    return 0.5 + h.prio
 
 
-def _bewertung(hinweise: list[Hinweis], proben: int, ziel) -> float:
-    min_p, max_p, ideal = ziel
-    s = abs(len(hinweise) - ideal) * 2.0
-    if proben < min_p:
-        s += (min_p - proben) * 3
-    if proben > max_p:
-        s += (proben - max_p) * 3
+def _note(hinweise: list[Hinweis]) -> float:
+    """Kleiner = schöner: abwechslungsreich, wenig direkte Angaben."""
     typen = Counter(type(h).__name__ for h in hinweise)
-    s -= len(typen) * 0.8                       # Abwechslung belohnen
-    s += max(0, typen["ImBereich"] - 1) * 1.5   # direkte Angaben bestrafen
-    s += max(0, typen["NichtImBereich"] - 2) * 1.0
-    s += max(0, max(typen.values()) - 4) * 1.0  # nicht zu viel vom Gleichen
+    s = -len(typen) * 0.8
+    s += typen["ImBereich"] * 1.5
+    s += typen["NichtImBereich"] * 0.5
+    s += max(0, typen["Kombi"] - 2) * 1.5
+    s += max(0, max(typen.values()) - 2) * 1.0
+    schwach = sum(1 for h in hinweise if isinstance(h, NichtNebenObjekt)
+                  or (isinstance(h, Kombi) and isinstance(h.b, NichtNebenObjekt)))
+    s += max(0, schwach - 1) * 1.5                          # "nicht neben ..." sparsam
+    # gleiche Aussage über verschiedene Personen ("nicht neben einer Kamera" 2x)
+    aussagen = Counter((type(h).__name__, getattr(h, "k", None), getattr(h, "b", None))
+                       for h in hinweise if not h.paar())
+    s += sum(n - 1 for n in aussagen.values()) * 2.0
     return s
 
 
-def erzeuge(fall: Fall, versuche: int = 40, log=print) -> Raetsel:
+def suche(fall: Fall, pos, rng: random.Random, ziel, schritte_max: int = 80):
+    v = fall.opfer_index
+    verdaechtige = [p for p in range(len(fall.personen)) if p != v]
+    kand = {p: kandidaten(fall, pos, p) for p in verdaechtige}
+    wahl = {p: rng.choices(kand[p], weights=[_gewicht(h) for h in kand[p]])[0]
+            for p in verdaechtige}
+    kosten, proben = _kosten(fall, wahl, ziel)
+    for _ in range(schritte_max):
+        if kosten == 0.0:
+            break
+        p = rng.choice(verdaechtige)
+        optionen = rng.sample(kand[p], min(14, len(kand[p])))
+        bestes = None
+        for h in optionen:
+            neu = dict(wahl)
+            neu[p] = h
+            k, pr = _kosten(fall, neu, ziel)
+            schluessel = (k, -_gewicht(h) * rng.random())
+            if bestes is None or schluessel < bestes[0]:
+                bestes = (schluessel, neu, k, pr)
+        if bestes[2] <= kosten:
+            _, wahl, kosten, proben = bestes
+    return wahl, kosten, proben
+
+
+def erzeuge(fall: Fall, versuche: int = 12, log=print) -> Raetsel:
     ziel = ZIELE[fall.schwierigkeit]
     rng = random.Random(fall.seed)
     aufstellungen = alle_aufstellungen(fall)
@@ -190,25 +226,19 @@ def erzeuge(fall: Fall, versuche: int = 40, log=print) -> Raetsel:
     bestes = None
     for i in range(versuche):
         pos = rng.choice(aufstellungen)
-        pool = hinweis_pool(fall, pos, rng)
-        ergebnis = reduziere(fall, pool, rng, max_proben=ziel[1] + 2)
-        if ergebnis is None:
+        wahl, kosten, proben = suche(fall, pos, rng, ziel)
+        if kosten >= 1.0:
+            log(f"  Versuch {i + 1:2d}: nicht eindeutig/lösbar")
             continue
-        hinweise, proben = ergebnis
-        note = _bewertung(hinweise, proben, ziel)
+        hinweise = [wahl[p] for p in sorted(wahl)]
+        _, _, schritte = loese_logisch(fall, hinweise, protokoll=True)
+        note = kosten * 10 + _note(hinweise) + 0.8 * max(0, len(schritte) - 10)
+        log(f"  Versuch {i + 1:2d}: {proben} Proben, {len(schritte)} Schritte, Note {note:.1f}")
         if bestes is None or note < bestes[0]:
-            bestes = (note, Raetsel(fall, pos, hinweise, proben))
-            log(f"  Versuch {i + 1:2d}: {len(hinweise)} Hinweise, {proben} Proben "
-                f"(Bewertung {note:.1f})")
+            bestes = (note, pos, hinweise)
     if bestes is None:
-        raise RuntimeError("Kein lösbares Rätsel gefunden.")
-    r = bestes[1]
-    r.hinweise = _sortiere(fall, r.hinweise, rng)
-    return r
-
-
-def _sortiere(fall: Fall, hinweise: list[Hinweis], rng: random.Random):
-    """Mischt die Hinweise, aber allgemeine Aussagen ("Niemand ...") ans Ende."""
-    h = list(hinweise)
-    rng.shuffle(h)
-    return sorted(h, key=lambda x: isinstance(x, Niemand))
+        raise RuntimeError("Kein lösbares Rätsel gefunden – mehr Versuche oder Plan ändern.")
+    _, pos, hinweise = bestes
+    loesung, proben, schritte = loese_logisch(fall, hinweise, protokoll=True)
+    assert loesung == pos
+    return Raetsel(fall, pos, hinweise, proben, schritte)
