@@ -24,7 +24,8 @@ from .hinweise import (AmRand, AndererBereich, AufObjekt, Allein, GleicherBereic
                        Hinweis, ImBereich, InSpalte, InZeile, Kombi, Links, NebenObjekt, NichtImBereich,
                        NichtNebenObjekt, Oben, Schraeg)
 from .logik import bewerte, loese_logisch
-from .loeser import finde_loesungen
+from . import loeser
+from .loeser import Zeitueberschreitung, finde_loesungen
 
 # Schwierigkeit = Anzahl nötiger "Was wäre wenn"-Proben (min, max)
 ZIELE = {
@@ -158,6 +159,10 @@ def kandidaten(fall: Fall, pos: dict[int, Zelle], p: int) -> list[Hinweis]:
         else:
             liste.append(AndererBereich(p, q))
 
+    # Zu einfach: ein Hinweis, der die Person schon allein auf genau ein Feld
+    # festlegt ("stand auf einem Buckel in Zeile 3" -> nur H3).
+    liste = [h for h in liste
+             if h.paar() is not None or isinstance(h, Allein) or len(felder(h)) > 1]
     for h in liste:
         assert h.subjekt == p and h.gilt(fall, pos), h
     return liste
@@ -335,7 +340,15 @@ def erzeuge(fall: Fall, versuche: int = 12, log=print) -> Raetsel:
             continue
         import time as _zeit
         _start = _zeit.time()
-        wahl, kosten, proben = suche(fall, pos, rng, ziel)
+        if fall.n >= 9:
+            loeser.FRIST = _start + 240      # höchstens 4 Minuten je Versuch
+        try:
+            wahl, kosten, proben = suche(fall, pos, rng, ziel)
+        except Zeitueberschreitung:
+            log(f"  Versuch {i + 1:2d}: abgebrochen (zu langsam)")
+            continue
+        finally:
+            loeser.FRIST = None
         if fall.n >= 9:
             log(f"  Versuch {i + 1:2d}: {_zeit.time() - _start:.0f} s")
         if kosten >= 1.0:

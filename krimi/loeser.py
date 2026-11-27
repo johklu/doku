@@ -14,8 +14,18 @@ Spielregeln, die der Löser kennt:
 
 from __future__ import annotations
 
+import time
+
 from .fall import Fall, Zelle
 from .hinweise import Hinweis
+
+# Zeitbremse für den Generator: ist eine Frist gesetzt (time.time()-Wert),
+# bricht jede Suche danach mit `Zeitueberschreitung` ab.
+FRIST: float | None = None
+
+
+class Zeitueberschreitung(Exception):
+    pass
 
 
 def _vorbereiten(fall: Fall, hinweise: list[Hinweis]):
@@ -63,9 +73,14 @@ def finde_loesungen(fall: Fall, hinweise: list[Hinweis], limit: int = 2):
                 return False
         return True
 
+    knoten = [0]
+
     def suche():
         if len(loesungen) >= limit:
             return
+        knoten[0] += 1
+        if FRIST is not None and knoten[0] % 2000 == 0 and time.time() > FRIST:
+            raise Zeitueberschreitung
         offen = [p for p in range(P) if pos[p] is None]
         if not offen:
             b = fall.bereich(pos[v])

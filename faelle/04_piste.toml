@@ -39,10 +39,10 @@ EEEEAAAAC
 """
 
 objekte = """
-.. .. .. .. Sn Sk Sn Sm Ts
+.. .. .. Sn Sn Sk Sn Sm Ts
 St@3 St@3 Sn Sn Sn Sn Sn Sz Ts
 St@3 St@3 Sn Sn Sn Sn Sz Bk Ts
-.. .. .. Sn Sn Fs Sn Bk Ts
+.. .. Sn Sn Sn Fs Sn Bk Ts
 St@3 St@3 Sk Sn Sn Sn Sk Bk Ts
 St@3 St@3 Sn Sn Sn Sn Bk Bk Fs
 .. .. .. Si Sz Sn Bk Bk Ts
