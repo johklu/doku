@@ -244,6 +244,8 @@ def _gierig(fall: Fall, kand, rng, frei, runden: int = 2, grenze: int = 800):
 def suche(fall: Fall, pos, rng: random.Random, ziel, schritte_max: int = 80):
     kand = alle_kandidaten(fall, pos)
     verdaechtige = list(kand)
+    gross = fall.n >= 9
+    max_form = 3 if gross else 2       # große Pläne brauchen mehr starke Hinweise
 
     def frei(p, h, wahl):
         """h passt, wenn (1) keine gleiche Aussage schon bei jemand anderem steht
@@ -257,12 +259,16 @@ def suche(fall: Fall, pos, rng: random.Random, ziel, schritte_max: int = 80):
         if h.bausteine() & belegt:
             return False
         formen.update(satzformen(h))
-        return max(formen.values()) <= 2
+        return max(formen.values()) <= max_form
 
-    if fall.n >= 9:
-        wahl = _gierig(fall, kand, rng, frei)
+    if gross:
+        wahl = _gierig(fall, kand, rng, frei, runden=3, grenze=300)
         if len(wahl) < len(kand):
             return wahl, 999.0, 0
+        # nur feinjustieren, wenn der gierige Start schon eindeutig ist
+        if len(finde_loesungen(fall, list(wahl.values()))) != 1:
+            return wahl, 999.0, 0
+        schritte_max = 15
     else:
         wahl = {}
         for p in rng.sample(verdaechtige, len(verdaechtige)):
@@ -273,13 +279,13 @@ def suche(fall: Fall, pos, rng: random.Random, ziel, schritte_max: int = 80):
     kosten, proben = _kosten(fall, wahl, ziel)
     bestes_bisher, ohne_fortschritt = kosten, 0
     for _ in range(schritte_max):
-        if kosten == 0.0 or ohne_fortschritt >= 25:
+        if kosten == 0.0 or ohne_fortschritt >= (6 if gross else 25):
             break
         p = rng.choice(verdaechtige)
         passend = [h for h in kand[p] if frei(p, h, wahl)]
         if not passend:
             continue
-        optionen = rng.sample(passend, min(14, len(passend)))
+        optionen = rng.sample(passend, min(6 if gross else 14, len(passend)))
         bestes = None
         for h in optionen:
             neu = dict(wahl)
@@ -316,7 +322,11 @@ def erzeuge(fall: Fall, versuche: int = 12, log=print) -> Raetsel:
         if len(finde_loesungen(fall, alle)) != 1:
             log(f"  Versuch {i + 1:2d}: Aufstellung grundsätzlich mehrdeutig")
             continue
+        import time as _zeit
+        _start = _zeit.time()
         wahl, kosten, proben = suche(fall, pos, rng, ziel)
+        if fall.n >= 9:
+            log(f"  Versuch {i + 1:2d}: {_zeit.time() - _start:.0f} s")
         if kosten >= 1.0:
             log(f"  Versuch {i + 1:2d}: nicht eindeutig/lösbar")
             continue
