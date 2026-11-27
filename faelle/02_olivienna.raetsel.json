@@ -1,0 +1,64 @@
+{
+  "fall": "02_olivienna.toml",
+  "titel": "Olivienna",
+  "gespeichert": "2026-11-27",
+  "uebeltaeter": "Lari",
+  "loesung": {
+    "Leah": "A4",
+    "Maxi": "B1",
+    "Moro": "F2",
+    "Lari": "D6",
+    "Johann": "E5",
+    "Oliven": "C3"
+  },
+  "proben": 0,
+  "hinweise": [
+    {
+      "typ": "GleicherBereich",
+      "p": "Leah",
+      "q": "Maxi",
+      "text": "Leah und Maxi waren im selben Bereich."
+    },
+    {
+      "typ": "Oben",
+      "p": "Maxi",
+      "q": "Moro",
+      "umgekehrt": false,
+      "text": "Maxi befand sich weiter oben als Moro."
+    },
+    {
+      "typ": "NebenObjekt",
+      "p": "Moro",
+      "k": "Be",
+      "text": "Moro befand sich direkt neben dem Bett."
+    },
+    {
+      "typ": "Kombi",
+      "a": {
+        "typ": "ImBereich",
+        "p": "Lari",
+        "b": "D"
+      },
+      "b": {
+        "typ": "AmRand",
+        "p": "Lari",
+        "ja": true
+      },
+      "text": "Lari war in der Flur-Küche, am äußeren Rand des Plans."
+    },
+    {
+      "typ": "Allein",
+      "p": "Johann",
+      "text": "Johann hatte den ganzen Bereich für sich allein."
+    }
+  ],
+  "loesungsweg": [
+    "Moro befand sich direkt neben dem Bett – das geht nur auf D1, E2 oder F2.",
+    "Lari war in der Flur-Küche, am äußeren Rand des Plans – das ist nur auf D6 möglich.",
+    "In Zeile 4 kann nur noch Leah stehen – also auf A4.",
+    "Leah und Maxi waren im selben Bereich – da Leah schon feststeht, bleibt für Maxi nur B1.",
+    "Johann hatte den ganzen Bereich für sich allein – von den passenden Feldern ist nur noch E5 frei.",
+    "Moro befand sich direkt neben dem Bett – von den passenden Feldern ist nur noch F2 frei.",
+    "Übrig bleibt C3: Dort waren die Oliven. In der Flur-Küche war sonst nur Lari – also: Lari hat die Oliven vernichtet!"
+  ]
+}

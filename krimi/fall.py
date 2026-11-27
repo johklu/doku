@@ -21,6 +21,7 @@ class Bereich:
     praep: str      # "auf der Tribüne", "in der Kabine", ...
     farbe: str
     streifen: bool = False   # z. B. Rasen-Mähstreifen
+    gesperrt: bool = False   # gehört nicht zum Rätsel (z. B. Nachbarwohnung): niemand war dort
 
 
 @dataclass
@@ -87,6 +88,8 @@ class Fall:
         return self.objekte[z[0]][z[1]]
 
     def besetzbar(self, z: Zelle) -> bool:
+        if self.bereiche[self.bereich(z)].gesperrt:
+            return False
         o = self.objekt(z)
         return o is None or o.besetzbar
 
@@ -137,7 +140,7 @@ def lade_fall(pfad: str | Path) -> Fall:
 
     bereiche = {
         k: Bereich(k, v["name"], v["praep"], v.get("farbe", "#eeeeee"),
-                   v.get("streifen", False))
+                   v.get("streifen", False), v.get("gesperrt", False))
         for k, v in daten["bereiche"].items()
     }
 
@@ -225,6 +228,10 @@ def lade_fall(pfad: str | Path) -> Fall:
     personen.append(Person(o["name"], kurz, o["bereich"], opfer=True,
                            nominativ=o.get("nominativ", ""), dativ=o.get("dativ", ""),
                            akkusativ=o.get("akkusativ", ""), mehrzahl=o.get("mehrzahl", False)))
+    for p in personen:
+        if bereiche[p.bereich].gesperrt:
+            raise ValueError(f"{p.name} steht im gesperrten Bereich "
+                             f"„{bereiche[p.bereich].name}“ – dort darf niemand sein.")
     if len(personen) != n:
         raise ValueError(f"Bei einem {n}x{n}-Plan braucht es genau {n} Personen "
                          f"(inkl. Opfer), gefunden: {len(personen)}.")

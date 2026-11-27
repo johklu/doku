@@ -93,7 +93,8 @@ button.gefahr { color: var(--akzent); }
 .zeile > label { flex: 1 1 140px; }
 
 .bereich-liste { display: grid; gap: 8px; }
-.bereich { display: grid; grid-template-columns: auto minmax(0,1fr) minmax(0,1.3fr) auto auto; gap: 6px; align-items: center; }
+.bereich { display: grid; grid-template-columns: auto minmax(0,1fr) minmax(0,1.3fr) auto auto auto; gap: 6px; align-items: center; }
+.sperre { display: flex; flex-direction: row; align-items: center; gap: 3px; font-size: 11.5px; white-space: nowrap; }
 @media (max-width: 520px) { .bereich { grid-template-columns: auto minmax(0,1fr) auto auto; } .bereich .praep { grid-column: 2 / -1; } }
 .pinsel { width: 34px; height: 30px; border-radius: 4px; border: 2px solid var(--linie); padding: 0; position: relative; }
 .pinsel.aktiv, .gegenstand.aktiv, #radierer.aktiv, #drehen.aktiv { outline: 2px solid var(--akzent); outline-offset: 1px; border-color: var(--akzent); }
@@ -226,7 +227,7 @@ const FARBEN = ["#f3d3cd", "#f0e0ae", "#d3e0ee", "#cde5bf", "#e2d4ef", "#f6dcc0"
 const BUCHST = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const SPALTEN = "ABCDEFGHI";
 const ZELLE = 100, RAND = 56;
-const SPEICHER = "grundriss-werkstatt-v2";
+const SPEICHER = "grundriss-werkstatt-v3";
 
 let S;                         // Zustand
 let werkzeug = null;           // {art:'bereich'|'objekt'|'radierer', k}
@@ -238,7 +239,7 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt
 function klon(o) { return JSON.parse(JSON.stringify(o)); }
 function leer(n) {
   return {
-    n, nummer: 2, titel: "", ort: "", frage: "", tat: "", intro: "", schwierigkeit: "mittel",
+    n, nummer: 3, titel: "", ort: "", frage: "", tat: "", intro: "", schwierigkeit: "mittel",
     bereiche: [{k: "A", name: "Raum 1", praep: "im Raum 1", farbe: FARBEN[0], auto: true}],
     plan: Array.from({length: n}, () => Array(n).fill("A")),
     objekte: Array.from({length: n}, () => Array(n).fill(null)),
@@ -298,7 +299,13 @@ function aufraeumen() {
 }
 let stueckGroesse = "1";
 function bereichInfo(k) { return S.bereiche.find((b) => b.k === k); }
-function besetzbar(r, c) { const k = S.objekte[r][c]; if (!k) return true; const o = objektInfo(k); return !o || o.besetzbar; }
+function dunkel(hex) {
+  const f = String(hex).replace("#", "");
+  if (f.length !== 6) return false;
+  const [r, g, b] = [0, 2, 4].map((i) => parseInt(f.slice(i, i + 2), 16) / 255);
+  return 0.2126 * r + 0.7152 * g + 0.0722 * b < 0.45;
+}
+function besetzbar(r, c) { if (bereichInfo(S.plan[r][c])?.gesperrt) return false; const k = S.objekte[r][c]; if (!k) return true; const o = objektInfo(k); return !o || o.besetzbar; }
 
 // ---------- Plan zeichnen ----------
 function zeichnePlan() {
@@ -308,6 +315,11 @@ function zeichnePlan() {
   for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
     const b = bereichInfo(S.plan[r][c]);
     t.push(`<rect x="${RAND + c * ZELLE}" y="${RAND + r * ZELLE}" width="${ZELLE}" height="${ZELLE}" fill="${b ? b.farbe : "#ffffff"}"/>`);
+    if (b?.gesperrt) {
+      const x = RAND + c * ZELLE, y = RAND + r * ZELLE, d = [];
+      for (let o = -80; o < 100; o += 20) d.push(`M${x + Math.max(0, o)} ${y + Math.max(0, -o)}L${x + Math.min(100, o + 100)} ${y + Math.min(100, 100 - o)}`);
+      t.push(`<path d="${d.join("")}" stroke="${dunkel(b.farbe) ? "#ffffff" : "#231d17"}" stroke-opacity="0.28" stroke-width="4" fill="none"/>`);
+    }
   }
   for (let i = 1; i < n; i++) {
     const p = RAND + i * ZELLE;
@@ -427,12 +439,14 @@ function zeichneBereiche() {
       <input type="text" id="b-name-${b.k}" value="${esc(b.name)}" aria-label="Name" placeholder="Name">
       <input type="text" id="b-praep-${b.k}" class="praep" value="${esc(b.praep)}" aria-label="Präposition" placeholder="z. B. in der Küche">
       <input type="color" id="b-farbe-${b.k}" value="${b.farbe}" aria-label="Farbe">
+      <label class="sperre" title="Gehört nicht zum Rätsel – dort kann niemand sein"><input type="checkbox" id="b-sperre-${b.k}" ${b.gesperrt ? "checked" : ""}>gesperrt</label>
       <button class="klein gefahr" data-weg="${b.k}" ${S.bereiche.length < 2 ? "disabled" : ""} aria-label="Bereich löschen">✕</button>
     </div>`).join("");
   el.querySelectorAll("[data-pinsel]").forEach((x) => (x.onclick = () => setzeWerkzeug({art: "bereich", k: x.dataset.pinsel})));
   S.bereiche.forEach((b) => {
     $(`b-name-${b.k}`).oninput = (e) => { b.name = e.target.value; if (b.auto) { b.praep = "im " + b.name; $(`b-praep-${b.k}`).value = b.praep; } allesAusser("bereiche"); };
     $(`b-praep-${b.k}`).oninput = (e) => { b.praep = e.target.value; b.auto = false; allesAusser("bereiche"); };
+    $(`b-sperre-${b.k}`).onchange = (e) => { b.gesperrt = e.target.checked; allesAusser("bereiche"); };
     $(`b-farbe-${b.k}`).oninput = (e) => { b.farbe = e.target.value; el.querySelector(`[data-pinsel="${b.k}"]`).style.background = b.farbe; allesAusser("bereiche"); };
   });
   el.querySelectorAll("[data-weg]").forEach((x) => (x.onclick = () => {
@@ -523,7 +537,7 @@ function zeichnePersonen() {
 
 // ---------- 4 Geschichte ----------
 const FELDER = ["nummer", "titel", "ort", "frage", "tat", "intro", "schwierigkeit"];
-const VORGABE = {schwierigkeit: "mittel", nummer: 2};
+const VORGABE = {schwierigkeit: "mittel", nummer: 3};
 function zeichneGeschichte() { FELDER.forEach((f) => ($(f).value = S[f] || VORGABE[f] || "")); }
 FELDER.forEach((f) => ($(f).oninput = $(f).onchange = (e) => { S[f] = e.target.value; allesAusser("geschichte"); }));
 
@@ -591,6 +605,8 @@ function pruefe() {
   if (fehlend) fehler(`${fehlend} ${fehlend === 1 ? "Name fehlt" : "Namen fehlen"}.`);
   const doppelt = namen.filter((x, i) => x && namen.indexOf(x) !== i);
   if (doppelt.length) fehler(`Doppelte Namen: ${[...new Set(doppelt)].join(", ")}.`);
+  alle.filter((p) => bereichInfo(p.bereich)?.gesperrt).forEach((p) =>
+    fehler(`${p.name || "Eine Person"} steht im gesperrten Bereich „${bereichInfo(p.bereich).name}“ – dort darf niemand sein.`));
   const imOpferBereich = S.personen.filter((p) => p.bereich === S.opfer.bereich);
   const ob = bereichInfo(S.opfer.bereich)?.name || "?";
   if (imOpferBereich.length === 1) ok(`Übeltäter: ${imOpferBereich[0].name || "Person " + (S.personen.indexOf(imOpferBereich[0]) + 1)} – als einzige Person mit dem „Opfer“ ${bereichInfo(S.opfer.bereich)?.praep || ""}.`);
@@ -618,7 +634,7 @@ function q(s) { return '"' + String(s).replace(/\\/g, "\\\\").replace(/"/g, '\\"
 function exportText() {
   const L = [];
   L.push(`# Fall aus der Grundriss-Werkstatt`);
-  L.push(`nummer = ${parseInt(S.nummer, 10) || 2}`);
+  L.push(`nummer = ${parseInt(S.nummer, 10) || 3}`);
   L.push(`titel = ${q(S.titel || "Ohne Titel")}`);
   L.push(`ort = ${q(S.ort)}`);
   L.push(`schwierigkeit = ${q(S.schwierigkeit || "mittel")}`);
@@ -633,7 +649,7 @@ function exportText() {
     S.eigene.forEach((e) => L.push(`${q(e.k)} = { name = ${q(e.name)}, genus = ${q(e.genus)}, besetzbar = ${e.besetzbar}, verb = ${q(e.verb)} }`));
   }
   L.push(`\n[bereiche]`);
-  S.bereiche.forEach((b) => L.push(`${b.k} = { name = ${q(b.name)}, praep = ${q(b.praep)}, farbe = ${q(b.farbe)} }`));
+  S.bereiche.forEach((b) => L.push(`${b.k} = { name = ${q(b.name)}, praep = ${q(b.praep)}, farbe = ${q(b.farbe)}${b.gesperrt ? ", gesperrt = true" : ""} }`));
   S.personen.forEach((p) => L.push(`\n[[personen]]\nname = ${q(p.name)}\nbereich = ${q(p.bereich)}`));
   L.push(`\n[opfer]\nname = ${q(S.opfer.name)}\nbereich = ${q(S.opfer.bereich)}`);
   if (S.opfer.nominativ) L.push(`nominativ = ${q(S.opfer.nominativ)}`);

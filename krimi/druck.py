@@ -68,6 +68,11 @@ def plan_svg(fall: Fall, loesung: dict | None = None) -> str:
             x, y = RAND + c * ZELLE, RAND + r * ZELLE
             teile.append(f'<rect x="{x}" y="{y}" width="{ZELLE}" height="{ZELLE}" '
                          f'fill="{bereich.farbe}"/>')
+            if bereich.gesperrt:
+                # Schraffur: gehört nicht zum Rätsel. Hell auf dunklen Farben, sonst dunkel.
+                strich = "#ffffff" if _dunkel(bereich.farbe) else "#231d17"
+                teile.append(f'<path d="{_schraffur(x, y)}" stroke="{strich}" '
+                             f'stroke-opacity="0.28" stroke-width="4" fill="none"/>')
             if bereich.streifen and c % 2 == 0:
                 teile.append(f'<rect x="{x}" y="{y}" width="{ZELLE}" height="{ZELLE}" '
                              f'fill="#000" fill-opacity="0.045"/>')
@@ -133,6 +138,24 @@ def objekt_svg(o: Objekt, x: float, y: float, richtung: str | None, drehung: int
     return f'<g class="{klasse}" transform="{trafo}">{o.icon2}</g>'
 
 
+def _dunkel(farbe: str) -> bool:
+    f = farbe.lstrip("#")
+    if len(f) != 6:
+        return False
+    r, g, b = (int(f[i:i + 2], 16) / 255 for i in (0, 2, 4))
+    return 0.2126 * r + 0.7152 * g + 0.0722 * b < 0.45
+
+
+def _schraffur(x: float, y: float) -> str:
+    """Diagonale Linien in einem Feld (100 x 100)."""
+    teile = []
+    for d in range(-80, 100, 20):
+        x1, y1 = x + max(0, d), y + max(0, -d)
+        x2, y2 = x + min(100, d + 100), y + min(100, 100 - d)
+        teile.append(f"M{x1} {y1 + 0}L{x2} {y2}")
+    return "".join(teile)
+
+
 def icon_svg(o: Objekt) -> str:
     klasse = "obj frei" if o.besetzbar else "obj fest"
     return f'<svg class="icon" viewBox="0 0 100 100"><g class="{klasse}">{o.icon}</g></svg>'
@@ -166,7 +189,8 @@ def _seite_regeln(fall: Fall | None) -> str:
         Gegenständen mit <span class="nein">✕</span> (z.&nbsp;B. Tisch, Spind, Tor) sind blockiert.
         Die Legende auf jeder Fallseite zeigt, was was ist.</li>
     <li><b>Bereiche.</b> Dicke Linien teilen den Plan in Bereiche. Ein Bereich zählt
-        als ein Raum – egal wie groß er ist.</li>
+        als ein Raum – egal wie groß er ist. Schraffierte Bereiche sind <i>gesperrt</i>
+        und gehören nicht zum Fall: Dort war niemand.</li>
     <li><b>Der Übeltäter.</b> Es war die <i>einzige</i> Person, die sich mit dem
         „Opfer“ im selben Bereich befand. Im Bereich des „Opfers“ ist also genau eine
         weitere Person.</li>
@@ -215,7 +239,7 @@ def _seite_fall(r: Raetsel) -> str:
 
     bereiche_html = "".join(
         f'<li class="bereich"><span class="farbfeld" style="background:{b.farbe}"></span>'
-        f'<span>{_e(b.name)}</span></li>'
+        f'<span>{_e(b.name)}{" <i>(gesperrt)</i>" if b.gesperrt else ""}</span></li>'
         for b in f.bereiche.values())
 
     arten = []

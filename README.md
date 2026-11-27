@@ -33,7 +33,7 @@ genau so, wie sie abgenommen wurden. Danach wird der Fall nie mehr neu
 erzeugt, sondern beim Bauen nur geprüft (gilt jeder Hinweis, ist die Lösung
 eindeutig?). Neu würfeln: Datei löschen oder `--neu`.
 
-Abgenommen: Fall 01 „Abpfiff in Müngersdorf“.
+Abgenommen: Fall 01 „Abpfiff in Müngersdorf“, Fall 02 „Olivienna“.
 
 ## Einen neuen Fall anlegen
 
@@ -59,6 +59,10 @@ Oder eine Datei in `faelle/` kopieren und von Hand anpassen:
 * `frage` / `tat` – die Prämisse, z. B. „Wer hat X mit Kölsch beworfen?“ /
   „hat X mit Kölsch beworfen“
 * `[stil]` – Akzentfarbe, Textfarbe, Titel- und Textschrift dieses Falls
+* Bereiche mit `gesperrt = true` gehören nicht zum Rätsel (z. B. die
+  Nachbarwohnung): Dort kann niemand stehen, im Druck schraffiert
+* `[opfer]` kann `nominativ`, `dativ`, `akkusativ`, `mehrzahl` haben, wenn das
+  „Opfer“ keine Person ist („die Oliven“)
 * `[gegenstaende]` – eigene Gegenstände nur für diesen Fall
   (`Kr = { name = "Krippe", genus = "f", besetzbar = true, verb = "lag in" }`)
 

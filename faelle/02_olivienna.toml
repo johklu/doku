@@ -47,7 +47,7 @@ B = { name = "Schlafzimmer", praep = "im Schlafzimmer", farbe = "#ceb4f0" }
 C = { name = "Bad", praep = "im Bad", farbe = "#d3e0ee" }
 D = { name = "Flur-Küche", praep = "in der Flur-Küche", farbe = "#cde5bf" }
 E = { name = "Toilette", praep = "in der Toilette", farbe = "#e2d4ef" }
-F = { name = "Top 36", praep = "im Top 36", farbe = "#001a78" }
+F = { name = "Top 36", praep = "im Top 36", farbe = "#001a78", gesperrt = true }   # Nachbarwohnung
 
 [[personen]]
 name = "Leah"
