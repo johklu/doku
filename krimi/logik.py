@@ -97,7 +97,7 @@ class Logik:
                     f"nicht mehr erfüllen")
         if grund[0] == "opfer":
             return (f"wäre im Bereich von {name} nicht genau eine weitere Person "
-                    f"(es gäbe keinen eindeutigen Täter)")
+                    f"(dann gäbe es keinen eindeutigen Übeltäter)")
         return f"bliebe für {name} kein Feld mehr übrig"
 
     def _felder(self, zellen) -> str:
@@ -379,9 +379,9 @@ class Logik:
         b = f.bereich(zv)
         taeter = next(p for p in range(self.P) if p != self.v and f.bereich(self.fest(p)) == b)
         self.schritte.append(
-            f"Übrig bleibt {f.koordinate(zv)}: Dort lag {self.name(self.v)}. "
+            f"Übrig bleibt {f.koordinate(zv)}: Dort war {self.name(self.v)}. "
             f"{f.bereiche[b].praep[0].upper()}{f.bereiche[b].praep[1:]} war sonst nur "
-            f"{self.name(taeter)}. {self.name(taeter)} ist der Täter!")
+            f"{self.name(taeter)} – also: {self.name(taeter)} {f.tat}!")
 
 
 def loese_logisch(fall: Fall, hinweise: list[Hinweis], max_proben: int = 99,

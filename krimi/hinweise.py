@@ -55,6 +55,14 @@ class Hinweis:
         return (type(self).__name__,) + tuple(
             v for k, v in sorted(vars(self).items()))
 
+    def bausteine(self) -> set[str]:
+        """Kennungen der Aussage – zwei Hinweise mit gemeinsamer Kennung wären
+        "derselbe Hinweis" und dürfen nicht zusammen in einem Rätsel stehen.
+        Gegenstands-Hinweise zählen je Gegenstand ("neben einer Kamera"),
+        alle anderen je Satzform ("schräg nebeneinander")."""
+        k = getattr(self, "k", None)
+        return {type(self).__name__ + (f":{k}" if k else "")}
+
     def __repr__(self):
         return f"<{self.schluessel()}>"
 
@@ -119,8 +127,7 @@ class AufObjekt(Hinweis):
         return self.erlaubt(fall, self.p, pos[self.p])
 
     def praedikat(self, fall):
-        from .katalog import KATALOG
-        o = KATALOG[self.k]
+        o = fall.katalog[self.k]
         return o.auf_best if fall.anzahl_objekt(self.k) == 1 else o.auf_unbest
 
     def text(self, fall):
@@ -138,14 +145,13 @@ class NebenObjekt(Hinweis):
         if p != self.p:
             return True
         return any(fall.objekt(nz) is not None and fall.objekt(nz).kuerzel == self.k
-                   for nz in fall.nachbarn4(z))
+                   for nz in fall.nachbarn_im_bereich(z))
 
     def gilt(self, fall, pos):
         return self.erlaubt(fall, self.p, pos[self.p])
 
     def zusatz(self, fall):
-        from .katalog import KATALOG
-        o = KATALOG[self.k]
+        o = fall.katalog[self.k]
         art = o.dat_best if fall.anzahl_objekt(self.k) == 1 else o.dat_unbest
         return f"direkt neben {art}"
 
@@ -164,14 +170,13 @@ class NichtNebenObjekt(Hinweis):
         if p != self.p:
             return True
         return not any(fall.objekt(nz) is not None and fall.objekt(nz).kuerzel == self.k
-                       for nz in fall.nachbarn4(z))
+                       for nz in fall.nachbarn_im_bereich(z))
 
     def gilt(self, fall, pos):
         return self.erlaubt(fall, self.p, pos[self.p])
 
     def _art(self, fall):
-        from .katalog import KATALOG
-        o = KATALOG[self.k]
+        o = fall.katalog[self.k]
         return o.dat_best if fall.anzahl_objekt(self.k) == 1 else o.dat_unbest
 
     def zusatz(self, fall):
@@ -220,8 +225,7 @@ class Niemand(Hinweis):
         return all(self.erlaubt(fall, p, z) for p, z in pos.items())
 
     def text(self, fall):
-        from .katalog import KATALOG
-        return KATALOG[self.k].niemand
+        return fall.katalog[self.k].niemand
 
     def schluessel(self):
         return ("Niemand", self.k)
@@ -326,7 +330,8 @@ class Schraeg(_Binaer):
     prio = 5
 
     def ok2(self, fall, za, zb):
-        return abs(za[0] - zb[0]) == 1 and abs(za[1] - zb[1]) == 1
+        return (abs(za[0] - zb[0]) == 1 and abs(za[1] - zb[1]) == 1
+                and fall.bereich(za) == fall.bereich(zb))
 
     def text(self, fall):
         return (f"{_name(fall, self.p)} und {_name(fall, self.q)} "
@@ -353,3 +358,8 @@ class Kombi(Hinweis):
 
     def schluessel(self):
         return ("Kombi", self.a.schluessel(), self.b.schluessel())
+
+    def bausteine(self):
+        # Die Teile zählen einzeln: "saß auf einem Sitz, direkt neben einer Kamera"
+        # schließt ein weiteres "direkt neben einer Kamera" aus.
+        return self.a.bausteine() | self.b.bausteine()

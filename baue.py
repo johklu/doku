@@ -58,7 +58,7 @@ def main():
         fall = lade_fall(pfad)
         print(f"Fall {fall.nummer:02d}: {fall.titel}")
         r = erzeuge_mit_cache(pfad, args.versuche)
-        print(f"  -> Täter: {fall.personen[r.taeter].name}, "
+        print(f"  -> Übeltäter: {fall.personen[r.taeter].name}, "
               f"{len(r.hinweise)} Hinweise, {r.proben} Proben")
         for h in r.hinweise:
             print(f"     - {h.text(fall)}")

@@ -101,6 +101,63 @@ _KOELSCH = """
 <path d="M22 41v17M78 41v17"/>
 <path class="f" d="M44 36h12v20H44z"/>"""
 
+_STUHL = """
+<rect class="f" x="26" y="10" width="13" height="50" rx="3"/>
+<rect class="f" x="26" y="50" width="50" height="11" rx="3"/>
+<path d="M31 61v28M71 61v28"/>"""
+
+_SOFA = """
+<rect class="f" x="12" y="24" width="76" height="30" rx="7"/>
+<rect class="f" x="4" y="42" width="17" height="32" rx="7"/>
+<rect class="f" x="79" y="42" width="17" height="32" rx="7"/>
+<rect class="f" x="21" y="54" width="29" height="20" rx="3"/>
+<rect class="f" x="50" y="54" width="29" height="20" rx="3"/>
+<path d="M14 74v12M86 74v12"/>"""
+
+_BETT = """
+<rect class="f" x="18" y="6" width="64" height="88" rx="6"/>
+<rect class="f" x="28" y="13" width="44" height="17" rx="6"/>
+<path d="M18 40h64M18 50h64"/>"""
+
+_TEPPICH = """
+<rect class="f" x="12" y="20" width="76" height="60" rx="2"/>
+<rect x="22" y="30" width="56" height="40" rx="2"/>
+<path d="M4 28h8M4 40h8M4 52h8M4 64h8M4 76h0M88 28h8M88 40h8M88 52h8M88 64h8"/>
+<path d="M50 38l10 12-10 12-10-12z"/>"""
+
+_BADEWANNE = """
+<path class="f" d="M6 44h88v10a26 26 0 0 1-26 26H32A26 26 0 0 1 6 54z"/>
+<path d="M82 44V22a8 8 0 0 0-16 0"/>
+<path d="M24 80l-5 10M76 80l5 10"/>"""
+
+_SCHRANK = """
+<rect class="k" x="16" y="6" width="68" height="84" rx="3"/>
+<path class="w" d="M50 6v84"/>
+<path class="w" d="M43 44v10M57 44v10"/>
+<path d="M22 90v6M78 90v6"/>"""
+
+_KAMIN = """
+<rect class="k" x="12" y="18" width="76" height="72"/>
+<rect class="k" x="4" y="10" width="92" height="10" rx="2"/>
+<path class="w" d="M28 90V58a22 22 0 0 1 44 0v32"/>
+<path class="f" d="M50 86c-11 0-15-9-10-17 2 5 6 5 6 1 0-7 4-11 9-15 0 7 8 11 8 20 0 7-6 11-13 11z"/>"""
+
+_WEIHNACHTSBAUM = """
+<path class="k" d="M50 6L26 38h11L19 62h15L11 86h78L66 62h15L63 38h11z"/>
+<rect class="k" x="43" y="86" width="14" height="10"/>
+<circle class="w" cx="42" cy="50" r="3"/><circle class="w" cx="60" cy="70" r="3"/>
+<circle class="w" cx="36" cy="76" r="3"/><circle class="w" cx="56" cy="32" r="3"/>"""
+
+_HERD = """
+<rect class="k" x="10" y="10" width="80" height="80" rx="4"/>
+<circle class="w" cx="32" cy="32" r="11"/><circle class="w" cx="68" cy="32" r="11"/>
+<circle class="w" cx="32" cy="68" r="11"/><circle class="w" cx="68" cy="68" r="11"/>"""
+
+_FERNSEHER = """
+<rect class="k" x="6" y="14" width="88" height="58" rx="4"/>
+<rect class="f" x="14" y="22" width="72" height="42" rx="2"/>
+<path d="M50 72v12M30 88h40"/>"""
+
 
 KATALOG: dict[str, Objekt] = {o.kuerzel: o for o in [
     # besetzbar
@@ -119,6 +176,18 @@ KATALOG: dict[str, Objekt] = {o.kuerzel: o for o in [
     _o("Bl", "Ball", True, "einem Ball", "dem Ball",
        "stand am Ball", "stand am Ball",
        "Niemand stand am Ball.", _BALL),
+    _o("St", "Stuhl", True, "einem Stuhl", "dem Stuhl",
+       "saß auf einem Stuhl", "saß auf dem Stuhl", "Kein Stuhl war besetzt.", _STUHL),
+    _o("So", "Sofa", True, "einem Sofa", "dem Sofa",
+       "saß auf einem Sofa", "saß auf dem Sofa", "Niemand saß auf einem Sofa.", _SOFA),
+    _o("Be", "Bett", True, "einem Bett", "dem Bett",
+       "lag in einem Bett", "lag im Bett", "Niemand lag in einem Bett.", _BETT),
+    _o("Te", "Teppich", True, "einem Teppich", "dem Teppich",
+       "stand auf einem Teppich", "stand auf dem Teppich",
+       "Niemand stand auf einem Teppich.", _TEPPICH),
+    _o("Bw", "Badewanne", True, "einer Badewanne", "der Badewanne",
+       "saß in einer Badewanne", "saß in der Badewanne",
+       "Niemand saß in einer Badewanne.", _BADEWANNE),
     # blockierend
     _o("Ti", "Tisch", False, "einem Tisch", "dem Tisch", icon=_TISCH),
     _o("Pf", "Pflanze", False, "einer Pflanze", "der Pflanze", icon=_PFLANZE),
@@ -128,4 +197,34 @@ KATALOG: dict[str, Objekt] = {o.kuerzel: o for o in [
     _o("Ka", "Kamera", False, "einer Kamera", "der Kamera", icon=_KAMERA),
     _o("Kö", "Kölschstand", False, "einem Kölschstand", "dem Kölschstand",
        icon=_KOELSCH),
+    _o("Sr", "Schrank", False, "einem Schrank", "dem Schrank", icon=_SCHRANK),
+    _o("Km", "Kamin", False, "einem Kamin", "dem Kamin", icon=_KAMIN),
+    _o("Wb", "Weihnachtsbaum", False, "einem Weihnachtsbaum", "dem Weihnachtsbaum",
+       icon=_WEIHNACHTSBAUM),
+    _o("He", "Herd", False, "einem Herd", "dem Herd", icon=_HERD),
+    _o("Fe", "Fernseher", False, "einem Fernseher", "dem Fernseher", icon=_FERNSEHER),
 ]}
+
+
+def eigenes_objekt(kuerzel: str, name: str, genus: str = "m", besetzbar: bool = False,
+                   verb: str = "stand auf") -> Objekt:
+    """Gegenstand, der nur in einem Fall vorkommt (Tabelle [gegenstaende]).
+
+    genus: "m" (der), "f" (die) oder "n" (das)
+    verb:  wie man darauf/darin ist, z. B. "saß auf", "lag in", "stand an"
+    Bis ein eigenes Icon gezeichnet ist, zeigt der Plan das Kürzel.
+    """
+    weiblich = genus == "f"
+    unbest = "einer" if weiblich else "einem"
+    best = "der" if weiblich else "dem"
+    auf_unbest = auf_best = None
+    if besetzbar:
+        auf_unbest = f"{verb} {unbest} {name}"
+        auf_best = f"{verb} {best} {name}"
+        if not weiblich:   # in dem -> im, an dem -> am
+            auf_best = auf_best.replace(" in dem ", " im ").replace(" an dem ", " am ")
+    icon = (f'<rect class="f" x="8" y="8" width="84" height="84" rx="14"/>'
+            f'<text x="50" y="63" text-anchor="middle" font-size="40" '
+            f'font-family="sans-serif" fill="#231d17">{kuerzel}</text>')
+    return Objekt(kuerzel, name, besetzbar, f"{unbest} {name}", f"{best} {name}",
+                  auf_unbest, auf_best, None, icon)

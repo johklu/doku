@@ -7,6 +7,7 @@
 #              Ka Kamera · Kö Kölschstand
 # personen: "bereich" = wo die Person laut LÖSUNG war (wird nicht verraten,
 #           sondern aus den Hinweisen erschlossen)
+# frage/tat: die Prämisse dieses Falls ("Wer hat ... ?")
 #
 # Achtung TOML: alle einfachen Einträge müssen VOR der ersten [Tabelle] stehen.
 
@@ -16,11 +17,14 @@ ort = "RheinEnergieStadion, Köln"
 schwierigkeit = "mittel"   # leicht | mittel | schwer
 seed = 11                  # anderer Wert = anderes Rätsel mit gleichem Plan
 
+frage = "Wer hat Okon-Engstler mit Kölsch beworfen?"
+tat = "hat Okon-Engstler mit Kölsch beworfen"   # Satz nach dem Namen in der Lösung
+
 intro = """
 Samstag, kurz nach Abpfiff. Der FC hat das Derby gewonnen, die Südkurve singt
-noch – da geht ein Schrei durch die Katakomben: Okon-Engstler wurde tot im
-Stadion aufgefunden. Sieben Personen waren zur Tatzeit noch im Stadion.
-Wer hatte Gelegenheit, mit Okon-Engstler allein zu sein?
+noch – da steht Okon-Engstler plötzlich klatschnass da und riecht verdächtig
+nach Kölsch. Irgendjemand hat einen vollen Becher geworfen! Sieben Personen
+waren zu diesem Zeitpunkt noch im Stadion.
 """
 
 plan = """

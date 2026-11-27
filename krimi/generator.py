@@ -99,7 +99,8 @@ def kandidaten(fall: Fall, pos: dict[int, Zelle], p: int) -> list[Hinweis]:
         h = AufObjekt(p, o.kuerzel)
         liste.append(h)
         erste.append(h)
-    nachbar_arten = {fall.objekt(nz).kuerzel for nz in fall.nachbarn4(z) if fall.objekt(nz)}
+    nachbar_arten = {fall.objekt(nz).kuerzel for nz in fall.nachbarn_im_bereich(z)
+                     if fall.objekt(nz)}
     for k in sorted(nachbar_arten):
         h = NebenObjekt(p, k)
         if fall.anzahl_objekt(k) >= 8:      # "neben einem Sitz" ist fast nichtssagend
@@ -108,7 +109,7 @@ def kandidaten(fall: Fall, pos: dict[int, Zelle], p: int) -> list[Hinweis]:
         zweite.append(h)
     relevant = {fall.objekt(nz).kuerzel
                 for bz in fall.bereichs_zellen(b) if fall.besetzbar(bz)
-                for nz in fall.nachbarn4(bz) if fall.objekt(nz)}
+                for nz in fall.nachbarn_im_bereich(bz) if fall.objekt(nz)}
     for k in sorted(relevant - nachbar_arten):
         h = NichtNebenObjekt(p, k)
         liste.append(h)
@@ -140,7 +141,7 @@ def kandidaten(fall: Fall, pos: dict[int, Zelle], p: int) -> list[Hinweis]:
         zq = pos[q]
         liste.append(Links(p, q) if z[1] < zq[1] else Links(q, p, umgekehrt=True))
         liste.append(Oben(p, q) if z[0] < zq[0] else Oben(q, p, umgekehrt=True))
-        if abs(z[0] - zq[0]) == 1 and abs(z[1] - zq[1]) == 1:
+        if abs(z[0] - zq[0]) == 1 and abs(z[1] - zq[1]) == 1 and fall.bereich(zq) == b:
             liste.append(Schraeg(p, q))
         if fall.bereich(zq) == b:
             liste.append(GleicherBereich(p, q))
@@ -172,6 +173,12 @@ def _gewicht(h: Hinweis) -> float:
     return 0.5 + h.prio
 
 
+def satzformen(h: Hinweis) -> list[str]:
+    if isinstance(h, Kombi):
+        return [type(h.a).__name__, type(h.b).__name__]
+    return [type(h).__name__]
+
+
 def _note(hinweise: list[Hinweis]) -> float:
     """Kleiner = schöner: abwechslungsreich, wenig direkte Angaben."""
     typen = Counter(type(h).__name__ for h in hinweise)
@@ -179,7 +186,8 @@ def _note(hinweise: list[Hinweis]) -> float:
     s += typen["ImBereich"] * 1.5
     s += typen["NichtImBereich"] * 0.5
     s += max(0, typen["Kombi"] - 2) * 1.5
-    s += max(0, max(typen.values()) - 2) * 1.0
+    formen = Counter(f for h in hinweise for f in satzformen(h))
+    s += sum(max(0, n - 1) for n in formen.values()) * 1.5  # gleiche Satzform
     schwach = sum(1 for h in hinweise if isinstance(h, NichtNebenObjekt)
                   or (isinstance(h, Kombi) and isinstance(h.b, NichtNebenObjekt)))
     s += max(0, schwach - 1) * 1.5                          # "nicht neben ..." sparsam
@@ -194,14 +202,37 @@ def suche(fall: Fall, pos, rng: random.Random, ziel, schritte_max: int = 80):
     v = fall.opfer_index
     verdaechtige = [p for p in range(len(fall.personen)) if p != v]
     kand = {p: kandidaten(fall, pos, p) for p in verdaechtige}
-    wahl = {p: rng.choices(kand[p], weights=[_gewicht(h) for h in kand[p]])[0]
-            for p in verdaechtige}
+
+    def frei(p, h, wahl):
+        """h passt, wenn (1) keine gleiche Aussage schon bei jemand anderem steht
+        und (2) keine Satzform ("direkt neben", "weiter links", ...) dadurch
+        öfter als zweimal vorkommt."""
+        belegt, formen = set(), Counter()
+        for q, hq in wahl.items():
+            if q != p:
+                belegt |= hq.bausteine()
+                formen.update(satzformen(hq))
+        if h.bausteine() & belegt:
+            return False
+        formen.update(satzformen(h))
+        return max(formen.values()) <= 2
+
+    wahl: dict[int, Hinweis] = {}
+    for p in rng.sample(verdaechtige, len(verdaechtige)):
+        moeglich = [h for h in kand[p] if frei(p, h, wahl)]
+        if not moeglich:
+            return wahl, 999.0, 0
+        wahl[p] = rng.choices(moeglich, weights=[_gewicht(h) for h in moeglich])[0]
     kosten, proben = _kosten(fall, wahl, ziel)
+    bestes_bisher, ohne_fortschritt = kosten, 0
     for _ in range(schritte_max):
-        if kosten == 0.0:
+        if kosten == 0.0 or ohne_fortschritt >= 25:
             break
         p = rng.choice(verdaechtige)
-        optionen = rng.sample(kand[p], min(14, len(kand[p])))
+        passend = [h for h in kand[p] if frei(p, h, wahl)]
+        if not passend:
+            continue
+        optionen = rng.sample(passend, min(14, len(passend)))
         bestes = None
         for h in optionen:
             neu = dict(wahl)
@@ -212,6 +243,10 @@ def suche(fall: Fall, pos, rng: random.Random, ziel, schritte_max: int = 80):
                 bestes = (schluessel, neu, k, pr)
         if bestes[2] <= kosten:
             _, wahl, kosten, proben = bestes
+        if kosten < bestes_bisher:
+            bestes_bisher, ohne_fortschritt = kosten, 0
+        else:
+            ohne_fortschritt += 1
     return wahl, kosten, proben
 
 
@@ -224,8 +259,16 @@ def erzeuge(fall: Fall, versuche: int = 12, log=print) -> Raetsel:
                          "Aufstellung (jede Zeile/Spalte genau eine Person).")
     log(f"  {len(aufstellungen)} mögliche Aufstellungen")
     bestes = None
+    v = fall.opfer_index
     for i in range(versuche):
         pos = rng.choice(aufstellungen)
+        # Aufstellungen, die selbst mit ALLEN wahren Aussagen nicht eindeutig
+        # werden, gar nicht erst versuchen.
+        alle = [h for p in range(len(fall.personen)) if p != v
+                for h in kandidaten(fall, pos, p)]
+        if len(finde_loesungen(fall, alle)) != 1:
+            log(f"  Versuch {i + 1:2d}: Aufstellung grundsätzlich mehrdeutig")
+            continue
         wahl, kosten, proben = suche(fall, pos, rng, ziel)
         if kosten >= 1.0:
             log(f"  Versuch {i + 1:2d}: nicht eindeutig/lösbar")

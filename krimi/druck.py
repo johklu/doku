@@ -13,7 +13,7 @@ from pathlib import Path
 
 from .fall import Fall
 from .generator import Raetsel
-from .katalog import KATALOG
+from .katalog import Objekt
 
 ZELLE = 100
 RAND = 56   # Platz für die Koordinaten A–H / 1–8
@@ -28,7 +28,7 @@ SCHRIFTEN = {
 }
 
 STANDARD_STIL = {
-    "akzent": "#b3261e",          # Rot für Überschriften-Details und das Opfer
+    "akzent": "#b3261e",          # Farbe für Überschriften-Details und das "Opfer"
     "tinte": "#231d17",           # Text- und Linienfarbe
     "titelschrift": "Special Elite",
     "textschrift": "Crimson Pro",
@@ -117,8 +117,7 @@ def plan_svg(fall: Fall, loesung: dict | None = None) -> str:
     return "".join(teile)
 
 
-def icon_svg(kuerzel: str) -> str:
-    o = KATALOG[kuerzel]
+def icon_svg(o: Objekt) -> str:
     klasse = "obj frei" if o.besetzbar else "obj fest"
     return f'<svg class="icon" viewBox="0 0 100 100"><g class="{klasse}">{o.icon}</g></svg>'
 
@@ -137,38 +136,41 @@ def _seite_regeln(fall: Fall | None) -> str:
 <section class="seite regeln" {_stil_attr(fall)}>
   <div class="kopf"><div class="akte">Vor dem ersten Fall</div>
   <h1>So wird ermittelt</h1></div>
-  <p class="intro">In jedem Fall ist ein Mensch zu Tode gekommen. Alle Beteiligten
-  standen zur Tatzeit irgendwo auf dem Plan – deine Aufgabe ist es, jede Person an
-  ihren Platz zu setzen und so den Täter zu entlarven.</p>
+  <p class="intro">In jedem Fall ist einem „Opfer“ etwas zugestoßen – mal ein Becher
+  Kölsch, mal ein verschwundenes Plätzchen. Alle Beteiligten befanden sich in diesem
+  Moment irgendwo auf dem Plan. Deine Aufgabe: Setze jede Person an ihren Platz und
+  entlarve so den Übeltäter.</p>
 
   <h2>Die Regeln</h2>
   <ol class="regelliste">
     <li><b>Eine Person pro Zeile und Spalte.</b> In jeder Zeile und in jeder Spalte
-        des Plans befindet sich genau eine Person – auch das Opfer.</li>
+        des Plans befindet sich genau eine Person – auch das „Opfer“.</li>
     <li><b>Wo man stehen kann.</b> Personen stehen auf freien Feldern oder auf
         Gegenständen mit <span class="ok">✓</span> (z.&nbsp;B. Sitz, Sessel, Bank). Felder mit
         Gegenständen mit <span class="nein">✕</span> (z.&nbsp;B. Tisch, Spind, Tor) sind blockiert.
         Die Legende auf jeder Fallseite zeigt, was was ist.</li>
     <li><b>Bereiche.</b> Dicke Linien teilen den Plan in Bereiche. Ein Bereich zählt
         als ein Raum – egal wie groß er ist.</li>
-    <li><b>Der Täter.</b> Der Täter ist die <i>einzige</i> Person, die sich mit dem
-        Opfer im selben Bereich befand. Im Bereich des Opfers ist also genau eine
+    <li><b>Der Übeltäter.</b> Es war die <i>einzige</i> Person, die sich mit dem
+        „Opfer“ im selben Bereich befand. Im Bereich des „Opfers“ ist also genau eine
         weitere Person.</li>
     <li><b>Ein Hinweis pro Person.</b> Zu jeder verdächtigen Person gibt es genau
-        einen Hinweis. Alle Hinweise sind wahr. Jeder Fall hat genau eine Lösung,
-        und sie lässt sich ohne Raten finden.</li>
+        einen Hinweis, und kein Hinweis kommt doppelt vor. Alle Hinweise sind wahr.
+        Jeder Fall hat genau eine Lösung, und sie lässt sich ohne Raten finden.</li>
   </ol>
 
   <h2>Kleines Wörterbuch</h2>
   <dl class="woerter">
     <dt>direkt neben</dt><dd>auf einem Nachbarfeld links, rechts, darüber oder darunter
-      – nicht schräg.</dd>
-    <dt>schräg nebeneinander</dt><dd>zwei Personen auf diagonal benachbarten Feldern.</dd>
+      – nicht schräg – und <i>im selben Bereich</i>. Bereichsgrenzen sind Wände:
+      Wer auf der Tribüne steht, ist nie „neben dem Tor“.</dd>
+    <dt>schräg nebeneinander</dt><dd>zwei Personen auf diagonal benachbarten Feldern im
+      selben Bereich.</dd>
     <dt>weiter links / rechts</dt><dd>in irgendeiner Spalte weiter links bzw. rechts
       auf dem Plan – nicht unbedingt direkt daneben.</dd>
     <dt>weiter oben / unten</dt><dd>in irgendeiner Zeile weiter oben bzw. unten auf dem Plan.</dd>
     <dt>äußerer Rand</dt><dd>die äußerste Zeile oder Spalte des Plans.</dd>
-    <dt>allein im Bereich</dt><dd>sonst niemand – auch nicht das Opfer – war in diesem Bereich.</dd>
+    <dt>allein im Bereich</dt><dd>sonst niemand – auch nicht das „Opfer“ – war in diesem Bereich.</dd>
   </dl>
 
   <h2>Tipps</h2>
@@ -178,7 +180,7 @@ def _seite_regeln(fall: Fall | None) -> str:
     <li>Ist eine Person gesetzt, sind ihre ganze Zeile und Spalte für alle anderen tabu.</li>
     <li>Schau dir die Bereiche an: Zwei Personen, die beide in einen Bereich über
         nur zwei Zeilen müssen, belegen genau diese beiden Zeilen.</li>
-    <li>Das Opfer wird in keinem Hinweis erwähnt – es steht am Ende auf dem
+    <li>Das „Opfer“ wird in keinem Hinweis erwähnt – es steht am Ende auf dem
         einzigen Feld, das noch übrig bleibt.</li>
     <li>Wer nicht weiterkommt, findet hinten im Buch zu jedem Fall einen kurzen
         Lösungsweg.</li>
@@ -193,10 +195,11 @@ def _seite_fall(r: Raetsel) -> str:
 
     personen_html = "".join(f"<li>{_chip(p)}{_e(p.name)}</li>" for p in verdaechtige)
     personen_html += (f'<li class="opfer">{_chip(opfer)}{_e(opfer.name)} '
-                      f'<small>(Opfer)</small></li>')
+                      f'<small>(„Opfer“)</small></li>')
 
     bereiche_html = "".join(
-        f'<li><span class="farbfeld" style="background:{b.farbe}"></span>{_e(b.name)}</li>'
+        f'<li class="bereich"><span class="farbfeld" style="background:{b.farbe}"></span>'
+        f'<span>{_e(b.name)}</span></li>'
         for b in f.bereiche.values())
 
     arten = []
@@ -204,11 +207,12 @@ def _seite_fall(r: Raetsel) -> str:
         o = f.objekt(z)
         if o and o.kuerzel not in arten:
             arten.append(o.kuerzel)
-    arten.sort(key=lambda k: (not KATALOG[k].besetzbar, KATALOG[k].name))
+    kat = f.katalog
+    arten.sort(key=lambda k: (not kat[k].besetzbar, kat[k].name))
     legende_html = "".join(
-        f'<li>{icon_svg(k)}<span>{_e(KATALOG[k].name)}</span>'
-        f'<span class="{"ok" if KATALOG[k].besetzbar else "nein"}">'
-        f'{"✓" if KATALOG[k].besetzbar else "✕"}</span></li>' for k in arten)
+        f'<li>{icon_svg(kat[k])}<span>{_e(kat[k].name)}</span>'
+        f'<span class="{"ok" if kat[k].besetzbar else "nein"}">'
+        f'{"✓" if kat[k].besetzbar else "✕"}</span></li>' for k in arten)
 
     hinweise_html = "".join(
         f"<li>{_chip(f.personen[h.subjekt])}<span>{_e(h.text(f))}</span></li>"
@@ -222,17 +226,17 @@ def _seite_fall(r: Raetsel) -> str:
     <div class="ort">{_e(f.ort)}</div>
   </div>
   <p class="intro">{_e(f.intro)}</p>
+  <p class="frage">{_e(f.frage)}</p>
   <div class="haupt">
     <figure>{plan_svg(f)}</figure>
     <aside>
       <h3>Personen</h3><ul class="personen">{personen_html}</ul>
-      <h3>Bereiche</h3><ul class="bereiche">{bereiche_html}</ul>
     </aside>
   </div>
-  <ul class="legende">{legende_html}</ul>
+  <ul class="legende">{bereiche_html}{legende_html}</ul>
   <h2>Hinweise</h2>
   <ul class="hinweise">{hinweise_html}</ul>
-  <div class="urteil"><span>Täter:</span><span class="linie"></span></div>
+  <div class="urteil"><span>Wer war's?</span><span class="linie"></span></div>
 </section>"""
 
 
@@ -245,7 +249,7 @@ def _block_loesung(r: Raetsel) -> str:
     return f"""
   <div class="loesungsblock" {_stil_attr(f)}>
     <h2>Fall {f.nummer:02d} · {_e(f.titel)}</h2>
-    <div class="aufloesung">Es war <b>{_e(t.name)}</b> – als einzige Person mit
+    <div class="aufloesung"><b>{_e(t.name)}</b> {_e(f.tat)} – als einzige Person mit
       {_e(o.name)} {_e(bereich.praep)}.</div>
     <div class="loesung-inhalt">
       <figure class="klein">{plan_svg(f, r.loesung)}</figure>
@@ -302,7 +306,7 @@ def buch_html(raetsel: list[Raetsel], mit_regeln: bool = True) -> str:
     seiten += [_seite_fall(r) for r in raetsel]
     seiten += _seiten_loesungen(raetsel)
     return f"""<!doctype html>
-<html lang="de"><head><meta charset="utf-8"><title>Mordsrätsel</title>
+<html lang="de"><head><meta charset="utf-8"><title>Rätselbuch</title>
 <style>
 {_font_faces()}
 {CSS}
@@ -330,10 +334,12 @@ h2 { font-family: var(--titel), monospace; font-weight: 400; font-size: 14pt;
      margin: 5mm 0 2mm; letter-spacing: .04em; }
 h3 { font-family: var(--titel), monospace; font-weight: 400; font-size: 11pt;
      margin: 0 0 1.5mm; letter-spacing: .06em; text-transform: uppercase; }
-.intro { font-style: italic; margin: 0 0 4mm; font-size: 12.5pt; }
+.intro { font-style: italic; margin: 0 0 2mm; font-size: 12.5pt; }
+.frage { font-family: var(--titel), monospace; color: var(--akzent); font-size: 13.5pt;
+         margin: 0 0 4mm; }
 
 .haupt { display: flex; gap: 6mm; align-items: flex-start; }
-.haupt figure { margin: 0; width: 110mm; flex: none; }
+.haupt figure { margin: 0; width: 102mm; flex: none; }
 .haupt aside { flex: 1; min-width: 0; }
 .haupt aside ul { list-style: none; padding: 0; margin: 0 0 4mm; }
 .plan { width: 100%; height: auto; display: block; }
@@ -367,6 +373,8 @@ h3 { font-family: var(--titel), monospace; font-weight: 400; font-size: 11pt;
 .legende li { display: grid; grid-template-columns: 7mm 1fr auto; align-items: center;
               gap: 1.5mm; }
 .legende li > span:last-child { margin-right: 2mm; }
+.legende li.bereich { grid-template-columns: 7mm 1fr; }
+.legende li.bereich .farbfeld { width: 7mm; height: 4.6mm; }
 .icon { width: 7mm; height: 7mm; }
 .ok { color: #2f6b2f; font-weight: 600; }
 .nein { color: var(--akzent); font-weight: 600; }

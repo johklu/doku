@@ -1,0 +1,567 @@
+<title>Grundriss-Werkstatt</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Special+Elite&family=Inter:wght@400;500;600&family=Crimson+Pro:ital@0;1&display=swap">
+<style>
+/* Werkbank-Layout: links der Plan wie ein Blatt Papier, rechts die Arbeitsschritte 1–5. */
+:root {
+  --bg: #f3efe8;
+  --flaeche: #fffdf9;
+  --tinte: #231d17;
+  --leise: #6d6359;
+  --linie: #ddd4c8;
+  --akzent: #b3261e;
+  --ok: #2f6b2f;
+  --warn: #9a5a12;
+  --plan-papier: #fffdf9;
+  --plan-tinte: #231d17;
+  --titel: "Special Elite", "Courier New", monospace;
+  --text: "Inter", system-ui, sans-serif;
+  --serif: "Crimson Pro", Georgia, serif;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #1c1916; --flaeche: #262220; --tinte: #ece5dc; --leise: #a89d91; --linie: #3d3631;
+    --akzent: #e8675c; --ok: #86c486; --warn: #e3a660; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #1c1916; --flaeche: #262220; --tinte: #ece5dc; --leise: #a89d91; --linie: #3d3631;
+  --akzent: #e8675c; --ok: #86c486; --warn: #e3a660; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--tinte); font-family: var(--text); font-size: 14px;
+  line-height: 1.45; padding-block: 20px 48px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+.rahmen { max-width: 1240px; margin: 0 auto; display: grid; gap: 20px; }
+header h1 { font-family: var(--titel); font-weight: 400; font-size: 30px; margin: 0; text-wrap: balance; }
+header p { margin: 4px 0 0; color: var(--leise); max-width: 70ch; }
+.werkbank { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 900px) { .werkbank { grid-template-columns: minmax(0, 1fr); } }
+
+.blatt { background: var(--flaeche); border: 1px solid var(--linie); border-radius: 6px; padding: 16px;
+  position: sticky; top: calc(env(safe-area-inset-top, 0px) + 12px); }
+@media (max-width: 900px) { .blatt { position: static; } }
+.blatt-kopf { display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.werkzeug-anzeige { font-size: 13px; color: var(--leise); }
+.werkzeug-anzeige b { color: var(--tinte); font-weight: 600; }
+.plan-huelle { background: var(--plan-papier); border-radius: 4px; padding: 6px; touch-action: none; user-select: none; }
+#plan { width: 100%; height: auto; display: block; cursor: crosshair; }
+#plan .raster { stroke: var(--plan-tinte); stroke-opacity: .2; stroke-width: 1.6; }
+#plan .grenze { stroke: var(--plan-tinte); stroke-width: 7; stroke-linecap: round; }
+#plan .aussen { fill: none; stroke: var(--plan-tinte); stroke-width: 9; }
+#plan .koord { font-family: var(--titel); font-size: 30px; fill: var(--plan-tinte); text-anchor: middle; }
+#plan .huebsch { fill: var(--plan-tinte); fill-opacity: 0; transition: fill-opacity .1s; }
+#plan .huebsch:hover { fill-opacity: .08; }
+.obj path, .obj rect, .obj circle { fill: none; stroke: var(--plan-tinte); stroke-width: 5; stroke-linejoin: round; stroke-linecap: round; }
+.obj .f { fill: #ffffff; fill-opacity: .85; }
+.obj .k { fill: var(--plan-tinte); fill-opacity: .85; }
+.obj .w { stroke: #f4efe6; stroke-width: 4; fill: none; }
+.obj .n { stroke-width: 2.4; stroke-opacity: .8; }
+.obj text { fill: var(--plan-tinte); stroke: none; }
+.tipp { font-size: 12.5px; color: var(--leise); margin: 10px 0 0; }
+
+.schritte { display: grid; gap: 14px; min-width: 0; }
+section.schritt { background: var(--flaeche); border: 1px solid var(--linie); border-radius: 6px; padding: 14px 16px; min-width: 0; }
+section.schritt h2 { font-family: var(--titel); font-weight: 400; font-size: 18px; margin: 0 0 10px; display: flex; gap: 10px; align-items: baseline; }
+section.schritt h2 .nr { color: var(--akzent); }
+.hilfe { color: var(--leise); font-size: 12.5px; margin: -4px 0 10px; }
+
+label { font-size: 12px; color: var(--leise); display: grid; gap: 3px; }
+input[type=text], input[type=number], select, textarea {
+  font: inherit; color: var(--tinte); background: var(--bg); border: 1px solid var(--linie);
+  border-radius: 4px; padding: 6px 8px; width: 100%; min-width: 0; }
+textarea { resize: vertical; }
+input:focus-visible, select:focus-visible, textarea:focus-visible, button:focus-visible {
+  outline: 2px solid var(--akzent); outline-offset: 1px; }
+input[type=color] { width: 34px; height: 30px; padding: 0; border: 1px solid var(--linie); border-radius: 4px; background: none; }
+button { font: inherit; color: var(--tinte); background: var(--bg); border: 1px solid var(--linie);
+  border-radius: 4px; padding: 6px 10px; cursor: pointer; }
+button:hover { border-color: var(--leise); }
+button.haupt { background: var(--tinte); color: var(--flaeche); border-color: var(--tinte); }
+button.klein { padding: 3px 8px; font-size: 12px; }
+button.gefahr { color: var(--akzent); }
+.zeile { display: flex; flex-wrap: wrap; gap: 8px; align-items: end; }
+.zeile > label { flex: 1 1 140px; }
+
+.bereich-liste { display: grid; gap: 8px; }
+.bereich { display: grid; grid-template-columns: auto minmax(0,1fr) minmax(0,1.3fr) auto auto; gap: 6px; align-items: center; }
+@media (max-width: 520px) { .bereich { grid-template-columns: auto minmax(0,1fr) auto auto; } .bereich .praep { grid-column: 2 / -1; } }
+.pinsel { width: 34px; height: 30px; border-radius: 4px; border: 2px solid var(--linie); padding: 0; position: relative; }
+.pinsel.aktiv, .gegenstand.aktiv, #radierer.aktiv { outline: 2px solid var(--akzent); outline-offset: 1px; border-color: var(--akzent); }
+.pinsel span { position: absolute; inset: auto 0 -1px 0; font-family: var(--titel); font-size: 11px; color: #231d17; }
+
+.gegenstaende { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 6px; }
+.gegenstand { display: grid; grid-template-columns: 26px minmax(0,1fr) auto; gap: 6px; align-items: center; text-align: left; padding: 5px 7px; }
+.gegenstand svg { width: 26px; height: 26px; background: var(--plan-papier); border-radius: 3px; }
+.gegenstand .name { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.mark-ok { color: var(--ok); font-weight: 600; }
+.mark-nein { color: var(--akzent); font-weight: 600; }
+.gruppe-titel { font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--leise); margin: 10px 0 6px; }
+details.eigener { margin-top: 10px; border-top: 1px dashed var(--linie); padding-top: 8px; }
+details.eigener summary { cursor: pointer; font-weight: 500; }
+details.eigener .zeile { margin-top: 8px; }
+
+.personen { display: grid; gap: 6px; }
+.person { display: grid; grid-template-columns: 22px minmax(0,1fr) minmax(0,.8fr); gap: 6px; align-items: center; }
+.person .nr { font-family: var(--titel); color: var(--leise); text-align: right; }
+.person.opfer .nr { color: var(--akzent); }
+
+.pruefung { list-style: none; padding: 0; margin: 0 0 12px; display: grid; gap: 6px; }
+.pruefung li { display: grid; grid-template-columns: 18px minmax(0,1fr); gap: 6px; }
+.pruefung .s-ok { color: var(--ok); } .pruefung .s-warn { color: var(--warn); } .pruefung .s-fehler { color: var(--akzent); }
+#export { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; height: 220px; white-space: pre; }
+.knoepfe { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; align-items: center; }
+.status { font-size: 12.5px; color: var(--ok); }
+.beispiel-hinweis { font-size: 12.5px; background: var(--bg); border: 1px dashed var(--linie); border-radius: 4px; padding: 8px 10px; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<div class="rahmen">
+  <header>
+    <h1>Grundriss-Werkstatt</h1>
+    <p>Mal deinen Plan, setz die Gegenstände und trag die Personen ein. Am Ende kopierst du den Text unten und schickst ihn im Chat – daraus entsteht das fertige Rätsel mit Hinweisen und Lösungsweg.</p>
+  </header>
+
+  <div class="werkbank">
+    <div class="blatt">
+      <div class="blatt-kopf">
+        <label style="flex-direction:row;display:flex;align-items:center;gap:8px">Größe
+          <select id="groesse"></select>
+        </label>
+        <div class="werkzeug-anzeige" id="werkzeug-anzeige"></div>
+      </div>
+      <div class="plan-huelle"><svg id="plan" xmlns="http://www.w3.org/2000/svg"></svg></div>
+      <p class="tipp">Bereich gewählt: Felder anklicken oder mit gedrückter Maus übermalen. Gegenstand gewählt: Feld anklicken (nochmal klicken entfernt ihn). In jeder Zeile und Spalte steht später genau eine Person – bei 8×8 also 8 Personen inklusive „Opfer“.</p>
+    </div>
+
+    <div class="schritte">
+      <section class="schritt">
+        <h2><span class="nr">1</span> Bereiche</h2>
+        <p class="hilfe">Jeder Bereich ist ein Raum. Farbfeld links anklicken, dann im Plan malen. „Präposition“ ist, wie man im Satz sagt, dass jemand dort war.</p>
+        <div class="bereich-liste" id="bereiche"></div>
+        <div class="knoepfe"><button id="bereich-neu" class="klein">+ Bereich</button></div>
+      </section>
+
+      <section class="schritt">
+        <h2><span class="nr">2</span> Gegenstände</h2>
+        <p class="hilfe"><span class="mark-ok">✓</span> man kann darauf stehen oder sitzen · <span class="mark-nein">✕</span> Feld ist blockiert.</p>
+        <div id="gegenstaende"></div>
+        <div class="knoepfe"><button id="radierer" class="klein">Radierer (Gegenstand entfernen)</button></div>
+        <details class="eigener">
+          <summary>Eigenen Gegenstand anlegen</summary>
+          <div class="zeile">
+            <label>Name<input type="text" id="eg-name" placeholder="z. B. Krippe"></label>
+            <label style="flex:0 0 90px">Artikel<select id="eg-genus"><option value="m">der</option><option value="f">die</option><option value="n">das</option></select></label>
+          </div>
+          <div class="zeile">
+            <label style="flex:0 0 150px">Feld ist …<select id="eg-besetzbar"><option value="1">besetzbar ✓</option><option value="0">blockiert ✕</option></select></label>
+            <label>Wie ist man dort? <input type="text" id="eg-verb" value="stand an" placeholder="saß auf / lag in / stand an"></label>
+            <button id="eg-anlegen" class="klein">Anlegen</button>
+          </div>
+          <p class="hilfe" style="margin-top:6px">Ein passendes Symbol zeichne ich dir später – bis dahin steht das Kürzel im Feld.</p>
+        </details>
+      </section>
+
+      <section class="schritt">
+        <h2><span class="nr">3</span> Personen</h2>
+        <p class="hilfe">Bereich = wo die Person laut Lösung war. Im Bereich des „Opfers“ muss genau eine weitere Person sein – das ist dann der Übeltäter.</p>
+        <div class="personen" id="personen"></div>
+      </section>
+
+      <section class="schritt">
+        <h2><span class="nr">4</span> Geschichte</h2>
+        <div class="zeile">
+          <label>Titel<input type="text" id="titel"></label>
+          <label>Ort<input type="text" id="ort"></label>
+        </div>
+        <div class="zeile" style="margin-top:8px">
+          <label>Frage<input type="text" id="frage" placeholder="Wer hat … ?"></label>
+        </div>
+        <div class="zeile" style="margin-top:8px">
+          <label>Tat (Satz nach dem Namen in der Lösung)<input type="text" id="tat" placeholder="hat … "></label>
+          <label style="flex:0 0 130px">Schwierigkeit<select id="schwierigkeit"><option>leicht</option><option selected>mittel</option><option>schwer</option></select></label>
+        </div>
+        <label style="margin-top:8px">Einleitung (darf ich auch schreiben)<textarea id="intro" rows="3"></textarea></label>
+      </section>
+
+      <section class="schritt">
+        <h2><span class="nr">5</span> Prüfen &amp; senden</h2>
+        <ul class="pruefung" id="pruefung"></ul>
+        <textarea id="export" readonly aria-label="Fall als Text"></textarea>
+        <div class="knoepfe">
+          <button id="kopieren" class="haupt">Text kopieren</button>
+          <span class="status" id="kopier-status" role="status"></span>
+        </div>
+        <div class="knoepfe" style="margin-top:14px">
+          <button id="beispiel" class="klein">Stadion-Beispiel laden</button>
+          <button id="leeren" class="klein gefahr">Neuen leeren Plan beginnen</button>
+          <span id="leeren-frage" hidden>Wirklich? Der aktuelle Plan geht verloren. <button id="leeren-ja" class="klein gefahr">Ja, leeren</button> <button id="leeren-nein" class="klein">Abbrechen</button></span>
+        </div>
+      </section>
+    </div>
+  </div>
+</div>
+
+<script>
+const KATALOG = __KATALOG__;
+const BEISPIEL = __BEISPIEL__;
+const FARBEN = ["#f3d3cd", "#f0e0ae", "#d3e0ee", "#cde5bf", "#e2d4ef", "#f6dcc0", "#cfeae6", "#e9e2d2", "#f2cfe0"];
+const BUCHST = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const SPALTEN = "ABCDEFGHI";
+const ZELLE = 100, RAND = 56;
+const SPEICHER = "grundriss-werkstatt-v1";
+
+let S;                         // Zustand
+let werkzeug = null;           // {art:'bereich'|'objekt'|'radierer', k}
+let malen = false, letzteZelle = null;
+
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;"}[c]));
+
+function klon(o) { return JSON.parse(JSON.stringify(o)); }
+function leer(n) {
+  return {
+    n, titel: "", ort: "", frage: "", tat: "", intro: "", schwierigkeit: "mittel",
+    bereiche: [{k: "A", name: "Raum 1", praep: "im Raum 1", farbe: FARBEN[0], auto: true}],
+    plan: Array.from({length: n}, () => Array(n).fill("A")),
+    objekte: Array.from({length: n}, () => Array(n).fill(null)),
+    eigene: [],
+    personen: Array.from({length: n - 1}, () => ({name: "", bereich: "A"})),
+    opfer: {name: "", bereich: "A"},
+  };
+}
+function ausBeispiel() {
+  const b = klon(BEISPIEL);
+  b.plan = b.plan.map((z) => z.split(""));
+  b.bereiche.forEach((x) => (x.auto = false));
+  b.eigene = b.eigene || [];
+  return b;
+}
+function laden() {
+  try { const t = localStorage.getItem(SPEICHER); if (t) { const s = JSON.parse(t); if (s && s.plan) return s; } } catch (e) {}
+  return ausBeispiel();
+}
+function speichern() { try { localStorage.setItem(SPEICHER, JSON.stringify(S)); } catch (e) {} }
+
+function katalogAlle() {
+  const eig = S.eigene.map((e) => ({k: e.k, name: e.name, besetzbar: e.besetzbar, eigen: true,
+    icon: `<rect class="f" x="8" y="8" width="84" height="84" rx="14"/><text x="50" y="63" text-anchor="middle" font-size="40" font-family="sans-serif">${esc(e.k)}</text>`}));
+  return KATALOG.concat(eig);
+}
+function objektInfo(k) { return katalogAlle().find((o) => o.k === k); }
+function bereichInfo(k) { return S.bereiche.find((b) => b.k === k); }
+function besetzbar(r, c) { const k = S.objekte[r][c]; if (!k) return true; const o = objektInfo(k); return !o || o.besetzbar; }
+
+// ---------- Plan zeichnen ----------
+function zeichnePlan() {
+  const n = S.n, w = RAND + n * ZELLE + 12, t = [];
+  const svg = $("plan");
+  svg.setAttribute("viewBox", `0 0 ${w} ${w}`);
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+    const b = bereichInfo(S.plan[r][c]);
+    t.push(`<rect x="${RAND + c * ZELLE}" y="${RAND + r * ZELLE}" width="${ZELLE}" height="${ZELLE}" fill="${b ? b.farbe : "#ffffff"}"/>`);
+  }
+  for (let i = 1; i < n; i++) {
+    const p = RAND + i * ZELLE;
+    t.push(`<line x1="${p}" y1="${RAND}" x2="${p}" y2="${RAND + n * ZELLE}" class="raster"/>`);
+    t.push(`<line x1="${RAND}" y1="${p}" x2="${RAND + n * ZELLE}" y2="${p}" class="raster"/>`);
+  }
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+    const k = S.objekte[r][c]; if (!k) continue;
+    const o = objektInfo(k); if (!o) continue;
+    t.push(`<g class="obj" transform="translate(${RAND + c * ZELLE + 14} ${RAND + r * ZELLE + 14}) scale(0.72)">${o.icon}</g>`);
+  }
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+    const x = RAND + c * ZELLE, y = RAND + r * ZELLE;
+    if (c + 1 < n && S.plan[r][c] !== S.plan[r][c + 1]) t.push(`<line x1="${x + ZELLE}" y1="${y}" x2="${x + ZELLE}" y2="${y + ZELLE}" class="grenze"/>`);
+    if (r + 1 < n && S.plan[r][c] !== S.plan[r + 1][c]) t.push(`<line x1="${x}" y1="${y + ZELLE}" x2="${x + ZELLE}" y2="${y + ZELLE}" class="grenze"/>`);
+  }
+  t.push(`<rect x="${RAND}" y="${RAND}" width="${n * ZELLE}" height="${n * ZELLE}" class="aussen"/>`);
+  for (let i = 0; i < n; i++) {
+    t.push(`<text x="${RAND + i * ZELLE + ZELLE / 2}" y="${RAND - 16}" class="koord">${SPALTEN[i]}</text>`);
+    t.push(`<text x="${RAND - 24}" y="${RAND + i * ZELLE + ZELLE / 2 + 11}" class="koord">${i + 1}</text>`);
+  }
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++)
+    t.push(`<rect class="huebsch" x="${RAND + c * ZELLE}" y="${RAND + r * ZELLE}" width="${ZELLE}" height="${ZELLE}"/>`);
+  svg.innerHTML = t.join("");
+}
+
+function zelleAus(ev) {
+  const svg = $("plan"), box = svg.getBoundingClientRect();
+  const w = RAND + S.n * ZELLE + 12, s = w / box.width;
+  const x = (ev.clientX - box.left) * s - RAND, y = (ev.clientY - box.top) * s - RAND;
+  const c = Math.floor(x / ZELLE), r = Math.floor(y / ZELLE);
+  if (r < 0 || c < 0 || r >= S.n || c >= S.n) return null;
+  return [r, c];
+}
+function anwenden(z, erster) {
+  if (!z || !werkzeug) return;
+  const [r, c] = z;
+  if (werkzeug.art === "bereich") S.plan[r][c] = werkzeug.k;
+  else if (werkzeug.art === "radierer") S.objekte[r][c] = null;
+  else if (werkzeug.art === "objekt") {
+    if (!erster) return;
+    S.objekte[r][c] = S.objekte[r][c] === werkzeug.k ? null : werkzeug.k;
+  }
+  zeichnePlan();
+}
+$("plan").addEventListener("pointerdown", (ev) => {
+  ev.preventDefault();
+  malen = true; letzteZelle = zelleAus(ev);
+  try { $("plan").setPointerCapture(ev.pointerId); } catch (e) {}
+  anwenden(letzteZelle, true);
+});
+$("plan").addEventListener("pointermove", (ev) => {
+  if (!malen) return;
+  const z = zelleAus(ev);
+  if (z && (!letzteZelle || z[0] !== letzteZelle[0] || z[1] !== letzteZelle[1])) { letzteZelle = z; anwenden(z, false); }
+});
+function malEnde() { if (malen) { malen = false; allesAusser("plan"); } }
+$("plan").addEventListener("pointerup", malEnde);
+$("plan").addEventListener("pointercancel", malEnde);
+
+// ---------- Werkzeug ----------
+function setzeWerkzeug(w) { werkzeug = w; zeigeWerkzeug(); zeichneBereiche(); zeichneGegenstaende(); }
+function zeigeWerkzeug() {
+  let t = "Kein Werkzeug gewählt";
+  if (werkzeug?.art === "bereich") t = `Werkzeug: <b>Bereich malen – ${esc(bereichInfo(werkzeug.k)?.name || "")}</b>`;
+  if (werkzeug?.art === "objekt") t = `Werkzeug: <b>${esc(objektInfo(werkzeug.k)?.name || "")} setzen</b>`;
+  if (werkzeug?.art === "radierer") t = "Werkzeug: <b>Radierer</b>";
+  $("werkzeug-anzeige").innerHTML = t;
+  $("radierer").classList.toggle("aktiv", werkzeug?.art === "radierer");
+}
+$("radierer").onclick = () => setzeWerkzeug({art: "radierer"});
+
+// ---------- 1 Bereiche ----------
+function zeichneBereiche() {
+  const el = $("bereiche");
+  el.innerHTML = S.bereiche.map((b, i) => `
+    <div class="bereich">
+      <button class="pinsel ${werkzeug?.art === "bereich" && werkzeug.k === b.k ? "aktiv" : ""}" data-pinsel="${b.k}" style="background:${b.farbe}" aria-label="${esc(b.name)} malen"><span>${b.k}</span></button>
+      <input type="text" id="b-name-${b.k}" value="${esc(b.name)}" aria-label="Name" placeholder="Name">
+      <input type="text" id="b-praep-${b.k}" class="praep" value="${esc(b.praep)}" aria-label="Präposition" placeholder="z. B. in der Küche">
+      <input type="color" id="b-farbe-${b.k}" value="${b.farbe}" aria-label="Farbe">
+      <button class="klein gefahr" data-weg="${b.k}" ${S.bereiche.length < 2 ? "disabled" : ""} aria-label="Bereich löschen">✕</button>
+    </div>`).join("");
+  el.querySelectorAll("[data-pinsel]").forEach((x) => (x.onclick = () => setzeWerkzeug({art: "bereich", k: x.dataset.pinsel})));
+  S.bereiche.forEach((b) => {
+    $(`b-name-${b.k}`).oninput = (e) => { b.name = e.target.value; if (b.auto) { b.praep = "im " + b.name; $(`b-praep-${b.k}`).value = b.praep; } allesAusser("bereiche"); };
+    $(`b-praep-${b.k}`).oninput = (e) => { b.praep = e.target.value; b.auto = false; allesAusser("bereiche"); };
+    $(`b-farbe-${b.k}`).oninput = (e) => { b.farbe = e.target.value; el.querySelector(`[data-pinsel="${b.k}"]`).style.background = b.farbe; allesAusser("bereiche"); };
+  });
+  el.querySelectorAll("[data-weg]").forEach((x) => (x.onclick = () => {
+    const k = x.dataset.weg, rest = S.bereiche.filter((b) => b.k !== k);
+    if (!rest.length) return;
+    S.bereiche = rest;
+    S.plan = S.plan.map((z) => z.map((v) => (v === k ? rest[0].k : v)));
+    S.personen.concat([S.opfer]).forEach((p) => { if (p.bereich === k) p.bereich = rest[0].k; });
+    if (werkzeug?.k === k) werkzeug = null;
+    alles();
+  }));
+}
+$("bereich-neu").onclick = () => {
+  const k = [...BUCHST].find((x) => !S.bereiche.some((b) => b.k === x));
+  const nr = S.bereiche.length + 1;
+  S.bereiche.push({k, name: `Raum ${nr}`, praep: `im Raum ${nr}`, farbe: FARBEN[(nr - 1) % FARBEN.length], auto: true});
+  werkzeug = {art: "bereich", k};
+  alles();
+};
+
+// ---------- 2 Gegenstände ----------
+function knopf(o) {
+  const aktiv = werkzeug?.art === "objekt" && werkzeug.k === o.k;
+  return `<button class="gegenstand ${aktiv ? "aktiv" : ""}" data-objekt="${esc(o.k)}" title="${esc(o.name)}">
+    <svg viewBox="0 0 100 100"><g class="obj">${o.icon}</g></svg><span class="name">${esc(o.name)}</span>
+    <span class="${o.besetzbar ? "mark-ok" : "mark-nein"}">${o.besetzbar ? "✓" : "✕"}</span></button>`;
+}
+function zeichneGegenstaende() {
+  const alle = katalogAlle();
+  const gr = (titel, liste) => liste.length ? `<div class="gruppe-titel">${titel}</div><div class="gegenstaende">${liste.map(knopf).join("")}</div>` : "";
+  $("gegenstaende").innerHTML =
+    gr("Besetzbar", alle.filter((o) => o.besetzbar && !o.eigen)) +
+    gr("Blockiert", alle.filter((o) => !o.besetzbar && !o.eigen)) +
+    gr("Eigene", alle.filter((o) => o.eigen));
+  $("gegenstaende").querySelectorAll("[data-objekt]").forEach((x) => (x.onclick = () => setzeWerkzeug({art: "objekt", k: x.dataset.objekt})));
+}
+function neuesKuerzel(name) {
+  const belegt = new Set(katalogAlle().map((o) => o.k));
+  const buchst = (name.normalize("NFD").replace(/[^A-Za-z]/g, "") || "Xx");
+  const kand = [];
+  for (let i = 1; i < buchst.length; i++) kand.push(buchst[0].toUpperCase() + buchst[i].toLowerCase());
+  for (const a of BUCHST) for (const b of "abcdefghijklmnopqrstuvwxyz") kand.push(a + b);
+  return kand.find((k) => !belegt.has(k));
+}
+$("eg-anlegen").onclick = () => {
+  const name = $("eg-name").value.trim();
+  if (!name) { $("eg-name").focus(); return; }
+  const k = neuesKuerzel(name);
+  S.eigene.push({k, name, genus: $("eg-genus").value, besetzbar: $("eg-besetzbar").value === "1", verb: $("eg-verb").value.trim() || "stand an"});
+  $("eg-name").value = "";
+  werkzeug = {art: "objekt", k};
+  alles();
+};
+
+// ---------- 3 Personen ----------
+function bereichOptionen(sel) {
+  return S.bereiche.map((b) => `<option value="${b.k}" ${b.k === sel ? "selected" : ""}>${esc(b.name)}</option>`).join("");
+}
+function zeichnePersonen() {
+  const zeilen = S.personen.map((p, i) => `
+    <div class="person"><span class="nr">${i + 1}</span>
+      <input type="text" id="p-name-${i}" value="${esc(p.name)}" placeholder="Name" aria-label="Name Person ${i + 1}">
+      <select id="p-ber-${i}" aria-label="Bereich Person ${i + 1}">${bereichOptionen(p.bereich)}</select></div>`);
+  zeilen.push(`<div class="person opfer"><span class="nr">★</span>
+      <input type="text" id="o-name" value="${esc(S.opfer.name)}" placeholder="„Opfer“" aria-label="Name Opfer">
+      <select id="o-ber" aria-label="Bereich Opfer">${bereichOptionen(S.opfer.bereich)}</select></div>`);
+  $("personen").innerHTML = zeilen.join("");
+  S.personen.forEach((p, i) => {
+    $(`p-name-${i}`).oninput = (e) => { p.name = e.target.value; allesAusser("personen"); };
+    $(`p-ber-${i}`).onchange = (e) => { p.bereich = e.target.value; allesAusser("personen"); };
+  });
+  $("o-name").oninput = (e) => { S.opfer.name = e.target.value; allesAusser("personen"); };
+  $("o-ber").onchange = (e) => { S.opfer.bereich = e.target.value; allesAusser("personen"); };
+}
+
+// ---------- 4 Geschichte ----------
+const FELDER = ["titel", "ort", "frage", "tat", "intro", "schwierigkeit"];
+function zeichneGeschichte() { FELDER.forEach((f) => ($(f).value = S[f] || (f === "schwierigkeit" ? "mittel" : ""))); }
+FELDER.forEach((f) => ($(f).oninput = $(f).onchange = (e) => { S[f] = e.target.value; allesAusser("geschichte"); }));
+
+// ---------- Größe ----------
+function zeichneGroesse() {
+  $("groesse").innerHTML = [5, 6, 7, 8, 9].map((n) => `<option value="${n}" ${n === S.n ? "selected" : ""}>${n} × ${n} (${n} Personen)</option>`).join("");
+}
+$("groesse").onchange = (e) => {
+  const n = +e.target.value, alt = S;
+  const erster = alt.bereiche[0].k;
+  S.plan = Array.from({length: n}, (_, r) => Array.from({length: n}, (_, c) => alt.plan[r]?.[c] ?? erster));
+  S.objekte = Array.from({length: n}, (_, r) => Array.from({length: n}, (_, c) => alt.objekte[r]?.[c] ?? null));
+  S.personen = Array.from({length: n - 1}, (_, i) => alt.personen[i] || {name: "", bereich: erster});
+  S.n = n;
+  alles();
+};
+
+// ---------- 5 Prüfen ----------
+function zusammenhaengend(k) {
+  const zellen = [];
+  for (let r = 0; r < S.n; r++) for (let c = 0; c < S.n; c++) if (S.plan[r][c] === k) zellen.push([r, c]);
+  if (!zellen.length) return true;
+  const gesehen = new Set([zellen[0].join()]), stapel = [zellen[0]];
+  while (stapel.length) {
+    const [r, c] = stapel.pop();
+    for (const [dr, dc] of [[1, 0], [-1, 0], [0, 1], [0, -1]]) {
+      const rr = r + dr, cc = c + dc, key = rr + "," + cc;
+      if (rr >= 0 && cc >= 0 && rr < S.n && cc < S.n && S.plan[rr][cc] === k && !gesehen.has(key)) { gesehen.add(key); stapel.push([rr, cc]); }
+    }
+  }
+  return gesehen.size === zellen.length;
+}
+function zaehleAufstellungen(grenze) {
+  const n = S.n, rest = {};
+  S.personen.concat([S.opfer]).forEach((p) => (rest[p.bereich] = (rest[p.bereich] || 0) + 1));
+  const frei = Array(n).fill(true);
+  let anzahl = 0;
+  (function suche(r) {
+    if (anzahl >= grenze) return;
+    if (r === n) { anzahl++; return; }
+    for (let c = 0; c < n; c++) {
+      if (!frei[c] || !besetzbar(r, c)) continue;
+      const b = S.plan[r][c];
+      if (!rest[b]) continue;
+      rest[b]--; frei[c] = false;
+      suche(r + 1);
+      rest[b]++; frei[c] = true;
+    }
+  })(0);
+  return anzahl;
+}
+function pruefe() {
+  const m = [];
+  const ok = (t) => m.push(["ok", "✓", t]), warn = (t) => m.push(["warn", "!", t]), fehler = (t) => m.push(["fehler", "✕", t]);
+  const genutzt = new Set(S.plan.flat());
+  S.bereiche.forEach((b) => {
+    if (!genutzt.has(b.k)) warn(`„${b.name}“ kommt im Plan nicht vor.`);
+    else if (!zusammenhaengend(b.k)) warn(`„${b.name}“ besteht aus getrennten Teilen – das ist erlaubt, aber ungewöhnlich.`);
+    if (!b.praep.trim()) fehler(`Für „${b.name}“ fehlt die Präposition (z. B. „in der Küche“).`);
+  });
+  const alle = S.personen.concat([S.opfer]);
+  const namen = alle.map((p) => p.name.trim());
+  const fehlend = namen.filter((x) => !x).length;
+  if (fehlend) fehler(`${fehlend} ${fehlend === 1 ? "Name fehlt" : "Namen fehlen"}.`);
+  const doppelt = namen.filter((x, i) => x && namen.indexOf(x) !== i);
+  if (doppelt.length) fehler(`Doppelte Namen: ${[...new Set(doppelt)].join(", ")}.`);
+  const imOpferBereich = S.personen.filter((p) => p.bereich === S.opfer.bereich);
+  const ob = bereichInfo(S.opfer.bereich)?.name || "?";
+  if (imOpferBereich.length === 1) ok(`Übeltäter: ${imOpferBereich[0].name || "Person " + (S.personen.indexOf(imOpferBereich[0]) + 1)} – als einzige Person mit dem „Opfer“ ${bereichInfo(S.opfer.bereich)?.praep || ""}.`);
+  else fehler(`Im Bereich des „Opfers“ (${ob}) muss genau eine weitere Person sein – im Moment sind es ${imOpferBereich.length}.`);
+  const zahl = zaehleAufstellungen(50000);
+  if (zahl === 0) fehler("So geht es nicht auf: Mit diesen Bereichen und Gegenständen lässt sich keine Aufstellung finden, bei der in jeder Zeile und Spalte genau eine Person steht. Tipp: Bereiche über mehr Zeilen/Spalten ziehen oder Personen anders verteilen.");
+  else if (zahl < 4) warn(`Nur ${zahl} mögliche Aufstellung${zahl === 1 ? "" : "en"} – sehr eng, das Rätsel wird eher leicht.`);
+  else ok(`${zahl >= 50000 ? "Über 50.000" : zahl.toLocaleString("de-DE")} mögliche Aufstellungen – passt.`);
+  const blockiert = S.objekte.flat().filter((k) => k && !objektInfo(k)?.besetzbar).length;
+  if (blockiert === 0) warn("Noch keine blockierten Gegenstände – sie machen das Rätsel interessanter.");
+  if (!S.frage.trim()) warn("Die Frage fehlt (z. B. „Wer hat … ?“). Ich kann auch eine vorschlagen.");
+  $("pruefung").innerHTML = m.map(([art, z, t]) => `<li><span class="s-${art}">${z}</span><span>${esc(t)}</span></li>`).join("");
+}
+
+// ---------- Export ----------
+function q(s) { return '"' + String(s).replace(/\\/g, "\\\\").replace(/"/g, '\\"') + '"'; }
+function exportText() {
+  const L = [];
+  L.push(`# Fall aus der Grundriss-Werkstatt`);
+  L.push(`nummer = 0`);
+  L.push(`titel = ${q(S.titel || "Ohne Titel")}`);
+  L.push(`ort = ${q(S.ort)}`);
+  L.push(`schwierigkeit = ${q(S.schwierigkeit || "mittel")}`);
+  L.push(`seed = 1`);
+  L.push(`frage = ${q(S.frage)}`);
+  L.push(`tat = ${q(S.tat)}`);
+  L.push(`intro = """\n${String(S.intro || "").replace(/\\/g, "\\\\").replace(/"""/g, '""\\"')}\n"""`);
+  L.push(`plan = """\n${S.plan.map((z) => z.join("")).join("\n")}\n"""`);
+  L.push(`objekte = """\n${S.objekte.map((z) => z.map((k) => k || "..").join(" ")).join("\n")}\n"""`);
+  if (S.eigene.length) {
+    L.push(`\n[gegenstaende]`);
+    S.eigene.forEach((e) => L.push(`${q(e.k)} = { name = ${q(e.name)}, genus = ${q(e.genus)}, besetzbar = ${e.besetzbar}, verb = ${q(e.verb)} }`));
+  }
+  L.push(`\n[bereiche]`);
+  S.bereiche.forEach((b) => L.push(`${b.k} = { name = ${q(b.name)}, praep = ${q(b.praep)}, farbe = ${q(b.farbe)} }`));
+  S.personen.forEach((p) => L.push(`\n[[personen]]\nname = ${q(p.name)}\nbereich = ${q(p.bereich)}`));
+  L.push(`\n[opfer]\nname = ${q(S.opfer.name)}\nbereich = ${q(S.opfer.bereich)}`);
+  return L.join("\n") + "\n";
+}
+$("kopieren").onclick = () => {
+  const t = $("export").value, st = $("kopier-status");
+  const auswahl = () => { $("export").focus(); $("export").select(); st.textContent = "Text ist markiert – jetzt mit Strg/Cmd + C kopieren."; };
+  try {
+    navigator.clipboard.writeText(t).then(() => (st.textContent = "Kopiert. Jetzt im Chat einfügen."), auswahl);
+  } catch (e) { auswahl(); }
+};
+
+// ---------- Neu / Beispiel ----------
+$("beispiel").onclick = () => { S = ausBeispiel(); werkzeug = null; alles(); };
+$("leeren").onclick = () => { $("leeren-frage").hidden = false; };
+$("leeren-nein").onclick = () => { $("leeren-frage").hidden = true; };
+$("leeren-ja").onclick = () => { S = leer(S.n); werkzeug = {art: "bereich", k: "A"}; $("leeren-frage").hidden = true; alles(); };
+
+// ---------- Gesamtablauf ----------
+function allesAusser(teil) {
+  if (teil !== "plan") zeichnePlan();
+  zeigeWerkzeug();
+  if (teil !== "personen") zeichnePersonen();
+  pruefe();
+  $("export").value = exportText();
+  speichern();
+}
+function alles() {
+  zeichneGroesse(); zeichnePlan(); zeichneBereiche(); zeichneGegenstaende();
+  zeichnePersonen(); zeichneGeschichte(); zeigeWerkzeug(); pruefe();
+  $("export").value = exportText();
+  speichern();
+}
+
+S = laden();
+alles();
+</script>

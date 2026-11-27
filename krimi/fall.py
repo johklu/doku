@@ -9,7 +9,7 @@ import tomllib
 from dataclasses import dataclass, field
 from pathlib import Path
 
-from .katalog import KATALOG, Objekt
+from .katalog import KATALOG, Objekt, eigenes_objekt
 
 Zelle = tuple[int, int]   # (zeile, spalte), beide ab 0
 
@@ -46,6 +46,9 @@ class Fall:
     schwierigkeit: str = "mittel"
     quelle: Path | None = None
     stil: dict = field(default_factory=dict)
+    frage: str = ""      # "Wer hat Okon-Engstler mit Kölsch beworfen?"
+    tat: str = ""        # "hat Okon-Engstler mit Kölsch beworfen"
+    katalog: dict[str, Objekt] = field(default_factory=dict)
 
     # --- Geometrie -------------------------------------------------------
     @property
@@ -71,6 +74,10 @@ class Fall:
             rr, cc = r + dr, c + dc
             if 0 <= rr < self.n and 0 <= cc < self.n:
                 yield (rr, cc)
+
+    def nachbarn_im_bereich(self, z: Zelle):
+        """Nachbarfelder (nicht schräg), die im selben Bereich liegen."""
+        return [nz for nz in self.nachbarn4(z) if self.bereich(nz) == self.bereich(z)]
 
     def bereichs_zellen(self, b: str) -> set[Zelle]:
         return {z for z in self.zellen() if self.bereich(z) == b}
@@ -113,12 +120,22 @@ def lade_fall(pfad: str | Path) -> Fall:
             if ch not in bereiche:
                 raise ValueError(f"Unbekannter Bereich '{ch}' im Plan.")
 
+    # Gegenstände: fester Katalog + eigene Gegenstände dieses Falls
+    katalog = dict(KATALOG)
+    for k, v in daten.get("gegenstaende", {}).items():
+        katalog[k] = eigenes_objekt(k, v["name"], v.get("genus", "m"),
+                                    v.get("besetzbar", False), v.get("verb", "stand auf"))
+
     objekte: list[list[Objekt | None]] = []
     for zeile in daten["objekte"].strip().splitlines():
         teile = zeile.split()
         if len(teile) != n:
             raise ValueError(f"Objektzeile hat nicht {n} Einträge: {zeile!r}")
-        objekte.append([None if t == ".." else KATALOG[t] for t in teile])
+        for t in teile:
+            if t != ".." and t not in katalog:
+                raise ValueError(f"Unbekannter Gegenstand '{t}'. Bitte in [gegenstaende] "
+                                 f"definieren oder Kürzel aus krimi/katalog.py nehmen.")
+        objekte.append([None if t == ".." else katalog[t] for t in teile])
     if len(objekte) != n:
         raise ValueError("Objekt-Raster hat falsche Zeilenzahl.")
 
@@ -149,4 +166,7 @@ def lade_fall(pfad: str | Path) -> Fall:
         schwierigkeit=daten.get("schwierigkeit", "mittel"),
         quelle=pfad,
         stil=daten.get("stil", {}),
+        frage=daten.get("frage", f"Wer war mit {o['name']} allein?"),
+        tat=daten.get("tat", "war es"),
+        katalog=katalog,
     )
