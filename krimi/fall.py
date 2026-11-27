@@ -47,9 +47,10 @@ class Fall:
     quelle: Path | None = None
     stil: dict = field(default_factory=dict)
     # Gegenstands-Stücke: ein Stück belegt 1 oder 2 Felder.
-    # stueck_von[r][c] = Nummer des Stücks; stuecke[i] = (kuerzel, [zellen], richtung)
+    # stueck_von[r][c] = Nummer des Stücks;
+    # stuecke[i] = (kuerzel, [zellen], richtung "h"/"v"/None, drehung 0–3 Vierteldrehungen)
     stueck_von: list[list[int | None]] = field(default_factory=list)
-    stuecke: list[tuple[str, list, str | None]] = field(default_factory=list)
+    stuecke: list[tuple[str, list, str | None, int]] = field(default_factory=list)
     frage: str = ""      # "Wer hat Okon-Engstler mit Kölsch beworfen?"
     tat: str = ""        # "hat Okon-Engstler mit Kölsch beworfen"
     katalog: dict[str, Objekt] = field(default_factory=dict)
@@ -88,7 +89,7 @@ class Fall:
 
     def anzahl_objekt(self, kuerzel: str) -> int:
         """Anzahl der Stücke (ein 2-Felder-Bett zählt als ein Bett)."""
-        return sum(1 for k, _, _ in self.stuecke if k == kuerzel)
+        return sum(1 for k, *_ in self.stuecke if k == kuerzel)
 
     def arten_neben(self, z: Zelle) -> set[str]:
         """Gegenstandsarten direkt neben z im selben Bereich – ohne das Stück,
@@ -106,10 +107,11 @@ def _kurzname(name: str, vergeben: set[str]) -> str:
     sauber = [ch for ch in name if ch.isalpha()]
     kandidaten = [sauber[0].upper() + sauber[1].lower()]
     kandidaten += [sauber[0].upper() + ch.lower() for ch in sauber[2:]]
+    kandidaten += [sauber[0].upper() + str(i) for i in range(1, 10)]   # Notlösung: "P1"
     for k in kandidaten:
         if k not in vergeben:
             return k
-    raise ValueError(f"Kein eindeutiges Kürzel für {name}")
+    raise ValueError(f"Kein eindeutiges Kürzel für {name} – bitte 'kurz' angeben.")
 
 
 def lade_fall(pfad: str | Path) -> Fall:
@@ -141,15 +143,24 @@ def lade_fall(pfad: str | Path) -> Fall:
     #   "Be"          Bett auf einem Feld
     #   "Be>" "Be<"   Bett über zwei Felder waagrecht (> zeigt zum Partner rechts)
     #   "Bev" / "Be^" Bett über zwei Felder senkrecht (Partner darunter)
+    #   "@1" "@2" "@3" hinter dem (ersten) Kürzel dreht um 90°/180°/270° im
+    #   Uhrzeigersinn, z. B. "Sd@1"; große Stücke lassen sich nur wenden ("Be>@2")
     zeilen = [z.split() for z in daten["objekte"].strip().splitlines()]
     if len(zeilen) != n or any(len(z) != n for z in zeilen):
         raise ValueError(f"Das Objekt-Raster muss {n} Zeilen mit je {n} Einträgen haben.")
     objekte: list[list[Objekt | None]] = [[None] * n for _ in range(n)]
     stueck_von: list[list[int | None]] = [[None] * n for _ in range(n)]
-    stuecke: list[tuple[str, list, str | None]] = []
+    stuecke: list[tuple[str, list, str | None, int]] = []
     partner = {">": (0, 1, "<"), "v": (1, 0, "^")}
     for r, zeile in enumerate(zeilen):
         for c, tok in enumerate(zeile):
+            drehung = 0
+            if "@" in tok:
+                tok, d = tok.split("@", 1)
+                if d not in ("1", "2", "3"):
+                    raise ValueError(f"Drehung '@{d}' in {Fall.koordinate((r, c))}: "
+                                     f"erlaubt sind @1, @2, @3.")
+                drehung = int(d)
             if tok == ".." or tok[-1] in "<^":
                 continue
             basis, suffix = (tok[:-1], tok[-1]) if tok[-1] in ">v" and len(tok) == 3 else (tok, "")
@@ -174,10 +185,13 @@ def lade_fall(pfad: str | Path) -> Fall:
                                      f"Bereichen – ein Gegenstand muss in einem Bereich liegen.")
                 zellen.append((rr, cc))
                 richtung = "h" if suffix == ">" else "v"
+                if drehung in (1, 3):
+                    raise ValueError(f"{o.name} in {Fall.koordinate((r, c))}: große Stücke "
+                                     f"lassen sich nur wenden (@2), die Richtung legt > bzw. v fest.")
             for zr, zc in zellen:
                 objekte[zr][zc] = o
                 stueck_von[zr][zc] = len(stuecke)
-            stuecke.append((basis, zellen, richtung))
+            stuecke.append((basis, zellen, richtung, drehung))
     for r, zeile in enumerate(zeilen):
         for c, tok in enumerate(zeile):
             if tok != ".." and tok[-1] in "<^" and len(tok) == 3 and stueck_von[r][c] is None:

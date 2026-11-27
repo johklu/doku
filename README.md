@@ -51,6 +51,8 @@ Oder eine Datei in `faelle/` kopieren und von Hand anpassen:
   `Be> Be<` (waagrecht, `>` zeigt zum Partner) oder `Bev` über `Be^` (senkrecht).
   Ein großes Stück zählt als *ein* Gegenstand, und die eigene zweite Hälfte
   gilt nicht als „daneben“.
+  Drehen: `@1`, `@2`, `@3` hinter dem Kürzel = 90°, 180°, 270° im
+  Uhrzeigersinn (`Sd@1`); große Stücke werden mit `@2` gewendet (`Be>@2`).
 * `personen` / `opfer` – Namen und in welchem Bereich sie laut Lösung waren
 * `schwierigkeit` – `leicht`, `mittel` oder `schwer`
 * `seed` – ein anderer Wert ergibt ein anderes Rätsel auf demselben Plan

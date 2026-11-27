@@ -77,11 +77,11 @@ def plan_svg(fall: Fall, loesung: dict | None = None) -> str:
         teile.append(f'<line x1="{p}" y1="{RAND}" x2="{p}" y2="{RAND + n * ZELLE}" class="raster"/>')
         teile.append(f'<line x1="{RAND}" y1="{p}" x2="{RAND + n * ZELLE}" y2="{p}" class="raster"/>')
 
-    for kuerzel, zellen, richtung in fall.stuecke:
+    for kuerzel, zellen, richtung, drehung in fall.stuecke:
         o = fall.katalog[kuerzel]
         r, c = zellen[0]
         x, y = RAND + c * ZELLE, RAND + r * ZELLE
-        teile.append(objekt_svg(o, x, y, richtung))
+        teile.append(objekt_svg(o, x, y, richtung, drehung))
 
     for r in range(n):
         for c in range(n):
@@ -113,17 +113,23 @@ def plan_svg(fall: Fall, loesung: dict | None = None) -> str:
     return "".join(teile)
 
 
-def objekt_svg(o: Objekt, x: float, y: float, richtung: str | None) -> str:
-    """Ein Stück auf dem Plan; (x, y) = linke obere Ecke des ersten Felds."""
+def objekt_svg(o: Objekt, x: float, y: float, richtung: str | None, drehung: int = 0) -> str:
+    """Ein Stück auf dem Plan; (x, y) = linke obere Ecke des ersten Felds.
+    drehung = Vierteldrehungen im Uhrzeigersinn (große Stücke: 0 oder 2)."""
     klasse = "obj frei" if o.besetzbar else "obj fest"
     if richtung is None:
-        trafo = f"translate({x + 14} {y + 14}) scale(0.72)"
+        trafo = (f"translate({x + 50} {y + 50}) rotate({90 * drehung}) "
+                 f"translate(-36 -36) scale(0.72)")
         return f'<g class="{klasse}" transform="{trafo}">{o.icon}</g>'
     # breites Icon (200 x 100), leicht eingerückt; senkrecht = um 90° gedreht
     if richtung == "h":
+        mitte = (x + 100, y + 50)
         trafo = f"translate({x + 6} {y + 10}) scale(0.94 0.8)"
     else:
+        mitte = (x + 50, y + 100)
         trafo = f"translate({x + 90} {y + 6}) rotate(90) scale(0.94 0.8)"
+    if drehung:
+        trafo = f"rotate({90 * drehung} {mitte[0]} {mitte[1]}) " + trafo
     return f'<g class="{klasse}" transform="{trafo}">{o.icon2}</g>'
 
 

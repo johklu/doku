@@ -96,7 +96,7 @@ button.gefahr { color: var(--akzent); }
 .bereich { display: grid; grid-template-columns: auto minmax(0,1fr) minmax(0,1.3fr) auto auto; gap: 6px; align-items: center; }
 @media (max-width: 520px) { .bereich { grid-template-columns: auto minmax(0,1fr) auto auto; } .bereich .praep { grid-column: 2 / -1; } }
 .pinsel { width: 34px; height: 30px; border-radius: 4px; border: 2px solid var(--linie); padding: 0; position: relative; }
-.pinsel.aktiv, .gegenstand.aktiv, #radierer.aktiv { outline: 2px solid var(--akzent); outline-offset: 1px; border-color: var(--akzent); }
+.pinsel.aktiv, .gegenstand.aktiv, #radierer.aktiv, #drehen.aktiv { outline: 2px solid var(--akzent); outline-offset: 1px; border-color: var(--akzent); }
 .pinsel span { position: absolute; inset: auto 0 -1px 0; font-family: var(--titel); font-size: 11px; color: #231d17; }
 
 .gegenstaende { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 6px; }
@@ -147,7 +147,7 @@ details.eigener .zeile { margin-top: 8px; }
         <span class="stueck-meldung" id="stueck-meldung" role="status"></span>
       </div>
       <div class="plan-huelle"><svg id="plan" xmlns="http://www.w3.org/2000/svg"></svg></div>
-      <p class="tipp">Bereich gewählt: Felder anklicken oder mit gedrückter Maus übermalen. Gegenstand gewählt: Feld anklicken (nochmal klicken entfernt ihn). In jeder Zeile und Spalte steht später genau eine Person – bei 8×8 also 8 Personen inklusive „Opfer“.</p>
+      <p class="tipp">Bereich gewählt: Felder anklicken oder mit gedrückter Maus übermalen. Gegenstand gewählt: Feld anklicken (nochmal klicken entfernt ihn). ↻ Drehen: Gegenstand anklicken, er dreht sich um 90° – große Stücke werden gewendet. In jeder Zeile und Spalte steht später genau eine Person – bei 8×8 also 8 Personen inklusive „Opfer“.</p>
     </div>
 
     <div class="schritte">
@@ -162,7 +162,7 @@ details.eigener .zeile { margin-top: 8px; }
         <h2><span class="nr">2</span> Gegenstände</h2>
         <p class="hilfe"><span class="mark-ok">✓</span> man kann darauf stehen oder sitzen · <span class="mark-nein">✕</span> Feld ist blockiert.</p>
         <div id="gegenstaende"></div>
-        <div class="knoepfe"><button id="radierer" class="klein">Radierer (Gegenstand entfernen)</button></div>
+        <div class="knoepfe"><button id="drehen" class="klein">↻ Drehen</button><button id="radierer" class="klein">Radierer (Gegenstand entfernen)</button></div>
         <details class="eigener">
           <summary>Eigenen Gegenstand anlegen</summary>
           <div class="zeile">
@@ -265,25 +265,35 @@ function katalogAlle() {
     icon: `<rect class="f" x="8" y="8" width="84" height="84" rx="14"/><text x="50" y="63" text-anchor="middle" font-size="40" font-family="sans-serif">${esc(e.k)}</text>`}));
   return KATALOG.concat(eig);
 }
-function basis(tok) { return tok && tok.length === 3 ? tok.slice(0, 2) : tok; }
+// Schreibweise eines Felds: "Be", "Be>"/"Be<", "Bev"/"Be^", optional "@1".."@3" = Drehung
+function zerlege(tok) {
+  if (!tok) return null;
+  let q = 0;
+  const at = tok.indexOf("@");
+  if (at >= 0) { q = parseInt(tok.slice(at + 1), 10) || 0; tok = tok.slice(0, at); }
+  return {k: tok.length === 3 ? tok.slice(0, 2) : tok, s: tok.length === 3 ? tok[2] : "", q};
+}
+function baue(k, s, q) { return k + (s || "") + (q ? "@" + q : ""); }
+function basis(tok) { return zerlege(tok)?.k; }
 function objektInfo(k) { const b = basis(k); return katalogAlle().find((o) => o.k === b); }
 // Zwei-Felder-Stücke: "Be>" + "Be<" (waagrecht), "Bev" + "Be^" (senkrecht)
 const PARTNER = {">": [0, 1, "<"], "<": [0, -1, ">"], "v": [1, 0, "^"], "^": [-1, 0, "v"]};
 function stueckZellen(r, c) {
   const tok = S.objekte[r][c];
   if (!tok) return [];
-  if (tok.length !== 3) return [[r, c]];
-  const [dr, dc] = PARTNER[tok[2]];
+  const z = zerlege(tok);
+  if (!z.s) return [[r, c]];
+  const [dr, dc] = PARTNER[z.s];
   return [[r, c], [r + dr, c + dc]];
 }
 function entferneStueck(r, c) { stueckZellen(r, c).forEach(([rr, cc]) => { if (S.objekte[rr]?.[cc] !== undefined) S.objekte[rr][cc] = null; }); }
 function aufraeumen() {
   // halbe Stücke (z. B. nach Verkleinern des Plans) werden zu 1-Feld-Stücken
   for (let r = 0; r < S.n; r++) for (let c = 0; c < S.n; c++) {
-    const tok = S.objekte[r][c];
-    if (!tok || tok.length !== 3) continue;
-    const [dr, dc, gegen] = PARTNER[tok[2]];
-    if (S.objekte[r + dr]?.[c + dc] !== tok.slice(0, 2) + gegen) S.objekte[r][c] = tok.slice(0, 2);
+    const z = zerlege(S.objekte[r][c]);
+    if (!z || !z.s) continue;
+    const [dr, dc, gegen] = PARTNER[z.s];
+    if (S.objekte[r + dr]?.[c + dc] !== z.k + gegen) S.objekte[r][c] = z.k;
   }
 }
 let stueckGroesse = "1";
@@ -307,11 +317,12 @@ function zeichnePlan() {
   for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
     const k = S.objekte[r][c]; if (!k) continue;
     const o = objektInfo(k); if (!o) continue;
-    const x = RAND + c * ZELLE, y = RAND + r * ZELLE, s = k.length === 3 ? k[2] : "";
+    const x = RAND + c * ZELLE, y = RAND + r * ZELLE, {s, q} = zerlege(k);
     if (s === "<" || s === "^") continue;
-    if (s === ">" && o.icon2) t.push(`<g class="obj" transform="translate(${x + 6} ${y + 10}) scale(0.94 0.8)">${o.icon2}</g>`);
-    else if (s === "v" && o.icon2) t.push(`<g class="obj" transform="translate(${x + 90} ${y + 6}) rotate(90) scale(0.94 0.8)">${o.icon2}</g>`);
-    else t.push(`<g class="obj" transform="translate(${x + 14} ${y + 14}) scale(0.72)">${o.icon}</g>`);
+    const dreh = (mx, my) => (q ? `rotate(${90 * q} ${mx} ${my}) ` : "");
+    if (s === ">" && o.icon2) t.push(`<g class="obj" transform="${dreh(x + 100, y + 50)}translate(${x + 6} ${y + 10}) scale(0.94 0.8)">${o.icon2}</g>`);
+    else if (s === "v" && o.icon2) t.push(`<g class="obj" transform="${dreh(x + 50, y + 100)}translate(${x + 90} ${y + 6}) rotate(90) scale(0.94 0.8)">${o.icon2}</g>`);
+    else t.push(`<g class="obj" transform="translate(${x + 50} ${y + 50}) rotate(${90 * q}) translate(-36 -36) scale(0.72)">${o.icon}</g>`);
   }
   for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
     const x = RAND + c * ZELLE, y = RAND + r * ZELLE;
@@ -341,6 +352,15 @@ function anwenden(z, erster) {
   const [r, c] = z;
   if (werkzeug.art === "bereich") S.plan[r][c] = werkzeug.k;
   else if (werkzeug.art === "radierer") entferneStueck(r, c);
+  else if (werkzeug.art === "drehen") {
+    if (!erster || !S.objekte[r][c]) return;
+    let [ar, ac] = [r, c];
+    const z0 = zerlege(S.objekte[r][c]);
+    if (z0.s === "<" || z0.s === "^") { const [dr, dc] = PARTNER[z0.s]; ar = r + dr; ac = c + dc; }
+    const z = zerlege(S.objekte[ar][ac]);
+    const q = z.s ? (z.q ? 0 : 2) : (z.q + 1) % 4;      // große Stücke wenden, kleine drehen
+    S.objekte[ar][ac] = baue(z.k, z.s, q);
+  }
   else if (werkzeug.art === "objekt") {
     if (!erster) return;
     $("stueck-meldung").textContent = "";
@@ -386,14 +406,17 @@ function zeigeWerkzeug() {
   if (werkzeug?.art === "bereich") t = `Werkzeug: <b>Bereich malen – ${esc(bereichInfo(werkzeug.k)?.name || "")}</b>`;
   if (werkzeug?.art === "objekt") t = `Werkzeug: <b>${esc(objektInfo(werkzeug.k)?.name || "")} setzen</b>`;
   if (werkzeug?.art === "radierer") t = "Werkzeug: <b>Radierer</b>";
+  if (werkzeug?.art === "drehen") t = "Werkzeug: <b>Drehen</b> – Gegenstand anklicken";
   $("werkzeug-anzeige").innerHTML = t;
   $("radierer").classList.toggle("aktiv", werkzeug?.art === "radierer");
+  $("drehen").classList.toggle("aktiv", werkzeug?.art === "drehen");
   const gross = werkzeug?.art === "objekt" && objektInfo(werkzeug.k)?.icon2;
   $("stueck-wahl").classList.toggle("unsichtbar", !gross);
   document.querySelectorAll("[data-groesse]").forEach((b) => b.classList.toggle("aktiv", b.dataset.groesse === stueckGroesse));
 }
 document.querySelectorAll("[data-groesse]").forEach((b) => (b.onclick = () => { stueckGroesse = b.dataset.groesse; zeigeWerkzeug(); }));
 $("radierer").onclick = () => setzeWerkzeug({art: "radierer"});
+$("drehen").onclick = () => setzeWerkzeug({art: "drehen"});
 
 // ---------- 1 Bereiche ----------
 function zeichneBereiche() {
@@ -564,8 +587,8 @@ function pruefe() {
   else if (zahl < 4) warn(`Nur ${zahl} mögliche Aufstellung${zahl === 1 ? "" : "en"} – sehr eng, das Rätsel wird eher leicht.`);
   else ok(`${zahl >= 50000 ? "Über 50.000" : zahl.toLocaleString("de-DE")} mögliche Aufstellungen – passt.`);
   for (let r = 0; r < S.n; r++) for (let c = 0; c < S.n; c++) {
-    const tok = S.objekte[r][c];
-    if (tok && tok.length === 3 && (tok[2] === ">" || tok[2] === "v")) {
+    const tok = S.objekte[r][c], zt = zerlege(tok);
+    if (zt && (zt.s === ">" || zt.s === "v")) {
       const [, [rr, cc]] = stueckZellen(r, c);
       if (S.plan[rr]?.[cc] !== S.plan[r][c])
         fehler(`${objektInfo(tok)?.name} in ${SPALTEN[c]}${r + 1} liegt über zwei Bereichen – bitte verschieben oder neu setzen.`);
