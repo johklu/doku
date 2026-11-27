@@ -262,7 +262,7 @@ def suche(fall: Fall, pos, rng: random.Random, ziel, schritte_max: int = 80):
         return max(formen.values()) <= max_form
 
     if gross:
-        wahl = _gierig(fall, kand, rng, frei, runden=3, grenze=300)
+        wahl = _gierig(fall, kand, rng, frei, runden=3, grenze=3000)
         if len(wahl) < len(kand):
             return wahl, 999.0, 0
         # nur feinjustieren, wenn der gierige Start schon eindeutig ist
@@ -313,7 +313,7 @@ def erzeuge(fall: Fall, versuche: int = 12, log=print) -> Raetsel:
     log(f"  {len(aufstellungen)} mögliche Aufstellungen")
     bestes = None
     if fall.n >= 9:
-        versuche = min(versuche, 10)       # große Pläne: jeder Versuch dauert länger
+        versuche = min(versuche, 20)       # große Pläne: jeder Versuch dauert länger
     for i in range(versuche):
         pos = rng.choice(aufstellungen)
         # Aufstellungen, die selbst mit ALLEN wahren Aussagen nicht eindeutig
