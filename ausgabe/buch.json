@@ -79,12 +79,12 @@
     "positionen": {
       "Johannes": "A6",
       "Dani": "C7",
-      "Sibylle": "B8",
       "Leah": "D2",
       "Kathi": "H4",
-      "Objektiv": "G3",
       "Alex": "F5",
-      "Marius": "E1"
+      "Marius": "E1",
+      "Sibylle": "B8",
+      "Objektiv": "G3"
     },
     "hinweise": [
       "Johannes war im Büro 1, aber nicht neben dem Teppich.",

@@ -227,7 +227,7 @@ const FARBEN = ["#f3d3cd", "#f0e0ae", "#d3e0ee", "#cde5bf", "#e2d4ef", "#f6dcc0"
 const BUCHST = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const SPALTEN = "ABCDEFGHI";
 const ZELLE = 100, RAND = 56;
-const SPEICHER = "grundriss-werkstatt-v3";
+const SPEICHER = "grundriss-werkstatt-v4";
 
 let S;                         // Zustand
 let werkzeug = null;           // {art:'bereich'|'objekt'|'radierer', k}
@@ -239,7 +239,7 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({"&": "&amp;", "<": "&lt
 function klon(o) { return JSON.parse(JSON.stringify(o)); }
 function leer(n) {
   return {
-    n, nummer: 3, titel: "", ort: "", frage: "", tat: "", intro: "", schwierigkeit: "mittel",
+    n, nummer: 4, titel: "", ort: "", frage: "", tat: "", intro: "", schwierigkeit: "mittel",
     bereiche: [{k: "A", name: "Raum 1", praep: "im Raum 1", farbe: FARBEN[0], auto: true}],
     plan: Array.from({length: n}, () => Array(n).fill("A")),
     objekte: Array.from({length: n}, () => Array(n).fill(null)),
@@ -537,7 +537,7 @@ function zeichnePersonen() {
 
 // ---------- 4 Geschichte ----------
 const FELDER = ["nummer", "titel", "ort", "frage", "tat", "intro", "schwierigkeit"];
-const VORGABE = {schwierigkeit: "mittel", nummer: 3};
+const VORGABE = {schwierigkeit: "mittel", nummer: 4};
 function zeichneGeschichte() { FELDER.forEach((f) => ($(f).value = S[f] || VORGABE[f] || "")); }
 FELDER.forEach((f) => ($(f).oninput = $(f).onchange = (e) => { S[f] = e.target.value; allesAusser("geschichte"); }));
 
@@ -634,7 +634,7 @@ function q(s) { return '"' + String(s).replace(/\\/g, "\\\\").replace(/"/g, '\\"
 function exportText() {
   const L = [];
   L.push(`# Fall aus der Grundriss-Werkstatt`);
-  L.push(`nummer = ${parseInt(S.nummer, 10) || 3}`);
+  L.push(`nummer = ${parseInt(S.nummer, 10) || 4}`);
   L.push(`titel = ${q(S.titel || "Ohne Titel")}`);
   L.push(`ort = ${q(S.ort)}`);
   L.push(`schwierigkeit = ${q(S.schwierigkeit || "mittel")}`);

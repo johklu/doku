@@ -33,7 +33,8 @@ genau so, wie sie abgenommen wurden. Danach wird der Fall nie mehr neu
 erzeugt, sondern beim Bauen nur geprüft (gilt jeder Hinweis, ist die Lösung
 eindeutig?). Neu würfeln: Datei löschen oder `--neu`.
 
-Abgenommen: Fall 01 „Abpfiff in Müngersdorf“, Fall 02 „Olivienna“.
+Abgenommen: Fall 01 „Abpfiff in Müngersdorf“, Fall 02 „Olivienna“,
+Fall 03 „Schmierereien im AKH“.
 
 ## Einen neuen Fall anlegen
 
