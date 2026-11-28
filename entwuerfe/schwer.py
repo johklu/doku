@@ -28,16 +28,16 @@ def atome_fuer(f, pos, p, opfer=False):
                and not f.bereiche[a].gesperrt]
     if o:
         un.append(H.AufObjekt(p, o.kuerzel))
-    un += [H.NichtAufObjekt(p, k) for k in besetzbare if not o or k != o.kuerzel]
+    un += [H.NichtAufObjekt(p, k) for k in sorted(besetzbare) if not o or k != o.kuerzel]
     neben = f.arten_neben(z)
-    un += [H.NebenObjekt(p, k) for k in neben]
-    un += [H.NichtNebenObjekt(p, k) for k in arten - neben]
-    for k in neben:
+    un += [H.NebenObjekt(p, k) for k in sorted(neben)]
+    un += [H.NichtNebenObjekt(p, k) for k in sorted(arten - neben)]
+    for k in sorted(neben):
         n = H.NebenAnzahl.zaehle(f, z, k)
         if n >= 2:
             un.append(H.NebenAnzahl(p, k, n))
     for achse in "zs":
-        for k in arten:
+        for k in sorted(arten):
             h = H.InLinieMit(p, k, achse)
             un.append(h if h.erlaubt(f, p, z) else H.InLinieMit(p, k, achse, 0))
     rand = z[0] in (0, f.n - 1) or z[1] in (0, f.n - 1)
@@ -73,8 +73,12 @@ def kandidaten(f, pos, p, rng, min_felder, anzahl=400):
     ein zweiter Teil (Verneinung, Rand oder eine kurze Lagebeziehung)."""
     opfer = p == f.opfer_index
     un, bi = atome_fuer(f, pos, p, opfer)
+    def selten(t):   # "in seiner Zeile gab es auch X" nur bei seltenen Gegenständen
+        linien = {(x[0] if t.achse == "z" else x[1]) for x in f.zellen()
+                  if f.objekt(x) and f.objekt(x).kuerzel == t.k}
+        return len(linien) <= f.n // 3
     thema = [t for t in un if isinstance(t, THEMA)
-             and not (isinstance(t, H.InLinieMit) and t.anzahl == 0)]
+             and not (isinstance(t, H.InLinieMit) and (t.anzahl == 0 or not selten(t)))]
     rest = [t for t in un if t not in thema]
     bi = [t for t in bi if not (isinstance(t, H.Abstand) and not 1 <= abs(t.d) <= 3)]
     aus, gesehen = [], set()
@@ -141,13 +145,18 @@ if __name__ == "__main__":
     namen = {p.name: i for i, p in enumerate(f.personen)}
     pos = {namen[k]: zelle(v) for k, v in (x.split("=") for x in sys.argv[2].split(","))}
     start = int(sys.argv[3]) if len(sys.argv) > 3 else 0
-    for seed in range(start, start + 40):
+    for seed in range(start, start + 400):
         t = time.time()
         r = suche(f, pos, seed)
         if r is None:
             print(f"seed {seed}: –  ({time.time() - t:.0f}s)", flush=True)
             continue
         wahl, proben, kette = r
+        import pickle
+        ordner = Path(__file__).resolve().parent / "treffer"
+        ordner.mkdir(exist_ok=True)
+        with open(ordner / f"{Path(sys.argv[1]).stem}_{seed}.pkl", "wb") as d:
+            pickle.dump(wahl, d)
         print(f"seed {seed}: Proben {proben}, Kette {kette} ({time.time() - t:.0f}s)", flush=True)
         for p, h in wahl.items():
             print(f"     {f.personen[p].name:<11} [{len(felder(f, p, H.atome(h)))}] "
