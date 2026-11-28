@@ -1,0 +1,140 @@
+"""Sucht zu einer festen Aufstellung einen Satz SCHWACHER, verzahnter Hinweise:
+jeder Hinweis lässt allein viele Felder offen, zusammen gibt es genau eine Lösung,
+und der logische Löser braucht mehrere "Angenommen ..."-Proben.
+
+    python3 entwuerfe/schwer.py faelle/04_piste.toml "Calzi=A5,Hosen=C8,..." [seed]
+"""
+import random
+import sys
+import time
+from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+from werkzeug import H, Logik, finde_loesungen, lade_fall, zelle  # noqa: E402
+from krimi import loeser  # noqa: E402
+from krimi.loeser import Zeitueberschreitung  # noqa: E402
+
+
+def atome_fuer(f, pos, p, opfer=False):
+    z = pos[p]
+    b = f.bereich(z)
+    o = f.objekt(z)
+    un, bi = [], []
+    arten = {f.objekt(x).kuerzel for x in f.zellen() if f.objekt(x)}
+    besetzbare = {k for k in arten if f.katalog[k].besetzbar}
+    if not opfer:
+        un.append(H.ImBereich(p, b))
+        un += [H.NichtImBereich(p, a) for a in f.bereiche if a != b
+               and not f.bereiche[a].gesperrt]
+    if o:
+        un.append(H.AufObjekt(p, o.kuerzel))
+    un += [H.NichtAufObjekt(p, k) for k in besetzbare if not o or k != o.kuerzel]
+    neben = f.arten_neben(z)
+    un += [H.NebenObjekt(p, k) for k in neben]
+    un += [H.NichtNebenObjekt(p, k) for k in arten - neben]
+    for k in neben:
+        n = H.NebenAnzahl.zaehle(f, z, k)
+        if n >= 2:
+            un.append(H.NebenAnzahl(p, k, n))
+    for achse in "zs":
+        for k in arten:
+            h = H.InLinieMit(p, k, achse)
+            un.append(h if h.erlaubt(f, p, z) else H.InLinieMit(p, k, achse, 0))
+    rand = z[0] in (0, f.n - 1) or z[1] in (0, f.n - 1)
+    un.append(H.AmRand(p, rand))
+    if opfer:
+        return un, []
+    for q in pos:
+        if q in (p, f.opfer_index):
+            continue
+        zq = pos[q]
+        bi.append(H.Oben(p, q) if z[0] < zq[0] else H.Oben(q, p, umgekehrt=True))
+        bi.append(H.Links(p, q) if z[1] < zq[1] else H.Links(q, p, umgekehrt=True))
+        bi.append(H.Abstand(p, q, "z", zq[0] - z[0]))
+        bi.append(H.Abstand(p, q, "s", zq[1] - z[1]))
+        bi.append(H.GleicherBereich(p, q) if f.bereich(zq) == b else H.AndererBereich(p, q))
+        if abs(z[0] - zq[0]) == 1 and abs(z[1] - zq[1]) == 1 and f.bereich(zq) == b:
+            bi.append(H.Schraeg(p, q))
+    for h in un + bi:
+        assert h.gilt(f, pos), h
+    return un, bi
+
+
+def felder(f, p, teile):
+    un = [t for t in teile if t.paar() is None]
+    return [z for z in f.zellen() if f.besetzbar(z) and all(t.erlaubt(f, p, z) for t in un)]
+
+
+def kandidaten(f, pos, p, rng, min_felder, anzahl=400):
+    opfer = p == f.opfer_index
+    un, bi = atome_fuer(f, pos, p, opfer)
+    aus = []
+    for _ in range(anzahl * 3):
+        art = rng.random()
+        if opfer or art < 0.35:
+            teile = rng.sample(un, 2) if rng.random() < 0.6 else [rng.choice(un)]
+        elif art < 0.75:
+            teile = [rng.choice(un), rng.choice(bi)]
+        else:
+            teile = [rng.choice(bi)] if rng.random() < 0.5 else rng.sample(bi, 2)
+        if len(felder(f, p, teile)) < min_felder:
+            continue
+        # jeder Teil muss etwas beitragen
+        aus.append(H.Und(teile, p))
+        if len(aus) >= anzahl:
+            break
+    return aus
+
+
+def anzahl(f, hs, limit=40):
+    return len(finde_loesungen(f, hs, limit=limit))
+
+
+def suche(f, pos, seed, min_felder=5, frist=300):
+    rng = random.Random(seed)
+    loeser.FRIST = time.time() + frist
+    try:
+        kand = {p: kandidaten(f, pos, p, rng, min_felder) for p in pos}
+        wahl = {p: rng.choice(kand[p]) for p in pos}
+        n = anzahl(f, list(wahl.values()))
+        for _ in range(400):
+            if n == 1:
+                break
+            p = rng.choice(list(pos))
+            best = None
+            for h in rng.sample(kand[p], min(12, len(kand[p]))):
+                w = dict(wahl); w[p] = h
+                m = anzahl(f, list(w.values()))
+                if m >= 1 and (best is None or m < best[0]):
+                    best = (m, h)
+            if best and best[0] <= n:
+                n, wahl[p] = best[0], best[1]
+        if n != 1:
+            return None
+        hs = list(wahl.values())
+        l = Logik(f, hs, protokoll=False)
+        if not l.loese():
+            return None
+        return wahl, l.proben, l.max_kette
+    except Zeitueberschreitung:
+        return None
+    finally:
+        loeser.FRIST = None
+
+
+if __name__ == "__main__":
+    f = lade_fall(sys.argv[1])
+    namen = {p.name: i for i, p in enumerate(f.personen)}
+    pos = {namen[k]: zelle(v) for k, v in (x.split("=") for x in sys.argv[2].split(","))}
+    start = int(sys.argv[3]) if len(sys.argv) > 3 else 0
+    for seed in range(start, start + 40):
+        t = time.time()
+        r = suche(f, pos, seed)
+        if r is None:
+            print(f"seed {seed}: –  ({time.time() - t:.0f}s)", flush=True)
+            continue
+        wahl, proben, kette = r
+        print(f"seed {seed}: Proben {proben}, Kette {kette} ({time.time() - t:.0f}s)", flush=True)
+        for p, h in wahl.items():
+            print(f"     {f.personen[p].name:<11} [{len(felder(f, p, H.atome(h)))}] "
+                  f"{' | '.join(type(t).text(t, f) for t in h.teile)}", flush=True)
