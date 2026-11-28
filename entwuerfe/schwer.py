@@ -104,6 +104,26 @@ def kandidaten(f, pos, p, rng, min_felder, anzahl=400):
     return aus
 
 
+FORM = {"Oben": "Lage", "Links": "Lage", "NebenAnzahl": "Neben", "NebenObjekt": "Neben",
+        "NichtImBereich": "Nicht", "NichtAufObjekt": "Nicht", "NichtNebenObjekt": "Nicht",
+        "GleicherBereich": "Bereich2", "AndererBereich": "Bereich2"}
+
+
+def formen(h):
+    return {FORM.get(type(t).__name__, type(t).__name__) for t in h.teile}
+
+
+def passt(wahl, p, h, grenze=2):
+    """Vielfalt: keine Hinweisform öfter als `grenze`-mal im ganzen Rätsel."""
+    from collections import Counter
+    c = Counter()
+    for q, hq in wahl.items():
+        if q != p:
+            c.update(formen(hq))
+    c.update(formen(h))
+    return max(c.values()) <= grenze
+
+
 def anzahl(f, hs, limit=40):
     return len(finde_loesungen(f, hs, limit=limit))
 
@@ -113,14 +133,20 @@ def suche(f, pos, seed, min_felder=3, frist=240):
     loeser.FRIST = time.time() + frist
     try:
         kand = {p: kandidaten(f, pos, p, rng, min_felder) for p in pos}
-        wahl = {p: rng.choice(kand[p]) for p in pos}
+        wahl = {}
+        for p in rng.sample(list(pos), len(pos)):
+            gut = [h for h in kand[p] if passt(wahl, p, h)]
+            if not gut:
+                return None
+            wahl[p] = rng.choice(gut)
         n = anzahl(f, list(wahl.values()))
         for _ in range(400):
             if n == 1:
                 break
             p = rng.choice(list(pos))
             best = None
-            for h in rng.sample(kand[p], min(12, len(kand[p]))):
+            gut = [h for h in kand[p] if passt(wahl, p, h)]
+            for h in rng.sample(gut, min(12, len(gut))):
                 w = dict(wahl); w[p] = h
                 m = anzahl(f, list(w.values()))
                 if m >= 1 and (best is None or m < best[0]):
