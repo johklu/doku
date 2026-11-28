@@ -38,26 +38,26 @@ def _o(kuerzel, name, besetzbar, dat_unbest, dat_best, auf_unbest=None,
 # Besetzbare Gegenstände: Umriss + helle Füllung.  Blockierende: kräftiger.
 
 _SITZ = """
-<path class="f" d="M31 16h38a7 7 0 0 1 7 7v31H24V23a7 7 0 0 1 7-7z"/>
-<path class="f" d="M16 54h68v11a5 5 0 0 1-5 5H21a5 5 0 0 1-5-5z"/>
+<path class="f" style="fill:#d9604c" d="M31 16h38a7 7 0 0 1 7 7v31H24V23a7 7 0 0 1 7-7z"/>
+<path class="f" style="fill:#d9604c" d="M16 54h68v11a5 5 0 0 1-5 5H21a5 5 0 0 1-5-5z"/>
 <path d="M28 70v16M72 70v16"/>"""
 
 _SESSEL = """
-<path class="f" d="M27 18h46a7 7 0 0 1 7 7v27H20V25a7 7 0 0 1 7-7z"/>
-<rect class="f" x="9" y="42" width="18" height="34" rx="7"/>
-<rect class="f" x="73" y="42" width="18" height="34" rx="7"/>
-<rect class="f" x="27" y="54" width="46" height="22" rx="4"/>
+<path class="f" style="fill:#b8743a" d="M27 18h46a7 7 0 0 1 7 7v27H20V25a7 7 0 0 1 7-7z"/>
+<rect class="f" style="fill:#b8743a" x="9" y="42" width="18" height="34" rx="7"/>
+<rect class="f" style="fill:#b8743a" x="73" y="42" width="18" height="34" rx="7"/>
+<rect class="f" style="fill:#b8743a" x="27" y="54" width="46" height="22" rx="4"/>
 <path d="M18 76v10M82 76v10"/>"""
 
 _BANK = """
-<rect class="f" x="6" y="40" width="88" height="13" rx="3"/>
-<rect class="f" x="6" y="22" width="88" height="10" rx="3"/>
+<rect class="f" style="fill:#b07a45" x="6" y="40" width="88" height="13" rx="3"/>
+<rect class="f" style="fill:#b07a45" x="6" y="22" width="88" height="10" rx="3"/>
 <path d="M14 32v8M86 32v8M18 53v28M82 53v28M12 81h12M76 81h12"/>"""
 
 _DUSCHE = """
 <path d="M20 90V24a12 12 0 0 1 12-12h16a12 12 0 0 1 12 12v8"/>
-<path class="f" d="M44 32h32l-5 9H49z"/>
-<path d="M51 50l-3 9M60 50v9M69 50l3 9M47 66l-3 9M60 66v9M73 66l3 9"/>"""
+<path class="f" style="fill:#aebccb" d="M44 32h32l-5 9H49z"/>
+<path style="stroke:#3d8fd1" d="M51 50l-3 9M60 50v9M69 50l3 9M47 66l-3 9M60 66v9M73 66l3 9"/>"""
 
 _BALL = """
 <circle class="f" cx="50" cy="50" r="34"/>
@@ -65,23 +65,23 @@ _BALL = """
 <path d="M50 37V16M62.4 46l19.5-6.3M57.7 60.6l12 16.6M42.3 60.6l-12 16.6M37.6 46l-19.5-6.3"/>"""
 
 _TISCH = """
-<rect class="k" x="8" y="32" width="84" height="12" rx="3"/>
+<rect class="k" style="fill:#7a4f2a" x="8" y="32" width="84" height="12" rx="3"/>
 <path d="M18 44v42M82 44v42M30 44l-6 20M70 44l6 20"/>"""
 
 _PFLANZE = """
-<path class="k" d="M33 64h34l-6 24H39z"/>
+<path class="k" style="fill:#c0673a" d="M33 64h34l-6 24H39z"/>
 <path d="M50 64V30"/>
-<path class="k" d="M50 50C37 49 27 39 24 24c15 2 24 12 26 26z"/>
-<path class="k" d="M50 42c13-1 23-11 26-26-15 2-24 12-26 26z"/>
-<path class="k" d="M50 60c-10 0-18-5-22-13 11-1 19 5 22 13z"/>"""
+<path class="k" style="fill:#4f8a3a" d="M50 50C37 49 27 39 24 24c15 2 24 12 26 26z"/>
+<path class="k" style="fill:#4f8a3a" d="M50 42c13-1 23-11 26-26-15 2-24 12-26 26z"/>
+<path class="k" style="fill:#4f8a3a" d="M50 60c-10 0-18-5-22-13 11-1 19 5 22 13z"/>"""
 
 _BUFFET = """
-<path class="k" d="M20 66a30 30 0 0 1 60 0z"/>
-<circle class="k" cx="50" cy="31" r="5"/>
+<path class="k" style="fill:#b8bec4" d="M20 66a30 30 0 0 1 60 0z"/>
+<circle class="k" style="fill:#b8bec4" cx="50" cy="31" r="5"/>
 <path d="M10 66h80M16 76h68"/>"""
 
 _SPIND = """
-<rect class="k" x="27" y="8" width="46" height="84" rx="3"/>
+<rect class="k" style="fill:#5d7a99" x="27" y="8" width="46" height="84" rx="3"/>
 <path class="w" d="M36 20h28M36 27h28M36 34h28M63 52v12"/>"""
 
 _TOR = """
@@ -98,30 +98,30 @@ _KOELSCH = """
 <path class="k" d="M10 34L20 12h60l10 22z"/>
 <path class="w" d="M30 13l-4 20M50 13v20M70 13l4 20"/>
 <path d="M10 34c0 7 10 7 10 0c0 7 10 7 10 0c0 7 10 7 10 0c0 7 10 7 10 0c0 7 10 7 10 0c0 7 10 7 10 0c0 7 10 7 10 0c0 7 10 7 10 0"/>
-<rect class="k" x="14" y="58" width="72" height="30" rx="2"/>
+<rect class="k" style="fill:#c0392b" x="14" y="58" width="72" height="30" rx="2"/>
 <path d="M22 41v17M78 41v17"/>
-<path class="f" d="M44 36h12v20H44z"/>"""
+<path class="f" style="fill:#f2c14e" d="M44 36h12v20H44z"/>"""
 
 _STUHL = """
-<rect class="f" x="26" y="10" width="13" height="50" rx="3"/>
-<rect class="f" x="26" y="50" width="50" height="11" rx="3"/>
+<rect class="f" style="fill:#c99a62" x="26" y="10" width="13" height="50" rx="3"/>
+<rect class="f" style="fill:#c99a62" x="26" y="50" width="50" height="11" rx="3"/>
 <path d="M31 61v28M71 61v28"/>"""
 
 _SOFA = """
-<rect class="f" x="12" y="24" width="76" height="30" rx="7"/>
-<rect class="f" x="4" y="42" width="17" height="32" rx="7"/>
-<rect class="f" x="79" y="42" width="17" height="32" rx="7"/>
-<rect class="f" x="21" y="54" width="29" height="20" rx="3"/>
-<rect class="f" x="50" y="54" width="29" height="20" rx="3"/>
+<rect class="f" style="fill:#7a9cc6" x="12" y="24" width="76" height="30" rx="7"/>
+<rect class="f" style="fill:#7a9cc6" x="4" y="42" width="17" height="32" rx="7"/>
+<rect class="f" style="fill:#7a9cc6" x="79" y="42" width="17" height="32" rx="7"/>
+<rect class="f" style="fill:#7a9cc6" x="21" y="54" width="29" height="20" rx="3"/>
+<rect class="f" style="fill:#7a9cc6" x="50" y="54" width="29" height="20" rx="3"/>
 <path d="M14 74v12M86 74v12"/>"""
 
 _BETT = """
-<rect class="f" x="18" y="6" width="64" height="88" rx="6"/>
+<rect class="f" style="fill:#a9c6e8" x="18" y="6" width="64" height="88" rx="6"/>
 <rect class="f" x="28" y="13" width="44" height="17" rx="6"/>
 <path d="M18 40h64M18 50h64"/>"""
 
 _TEPPICH = """
-<rect class="f" x="12" y="20" width="76" height="60" rx="2"/>
+<rect class="f" style="fill:#c4553f" x="12" y="20" width="76" height="60" rx="2"/>
 <rect x="22" y="30" width="56" height="40" rx="2"/>
 <path d="M4 28h8M4 40h8M4 52h8M4 64h8M4 76h0M88 28h8M88 40h8M88 52h8M88 64h8"/>
 <path d="M50 38l10 12-10 12-10-12z"/>"""
@@ -132,22 +132,25 @@ _BADEWANNE = """
 <path d="M24 80l-5 10M76 80l5 10"/>"""
 
 _SCHRANK = """
-<rect class="k" x="16" y="6" width="68" height="84" rx="3"/>
+<rect class="k" style="fill:#7a4f2a" x="16" y="6" width="68" height="84" rx="3"/>
 <path class="w" d="M50 6v84"/>
 <path class="w" d="M43 44v10M57 44v10"/>
 <path d="M22 90v6M78 90v6"/>"""
 
 _KAMIN = """
-<rect class="k" x="12" y="18" width="76" height="72"/>
-<rect class="k" x="4" y="10" width="92" height="10" rx="2"/>
-<path class="w" d="M28 90V58a22 22 0 0 1 44 0v32"/>
-<path class="f" d="M50 86c-11 0-15-9-10-17 2 5 6 5 6 1 0-7 4-11 9-15 0 7 8 11 8 20 0 7-6 11-13 11z"/>"""
+<rect class="k" style="fill:#a5442f" x="12" y="18" width="76" height="72"/>
+<rect class="k" style="fill:#6d4c3d" x="4" y="10" width="92" height="10" rx="2"/>
+<path class="k" style="fill:#2b211c" d="M28 90V58a22 22 0 0 1 44 0v32z"/>
+<path style="fill:#e2381b;stroke:none" d="M50 88c-13 0-18-10-12-20 2 6 7 6 7 1 0-8 5-13 10-17 0 8 10 13 10 23 0 8-7 13-15 13z"/>
+<path style="fill:#f7931e;stroke:none" d="M50 88c-8 0-11-6-7-12 2 3 5 3 5 0 0-5 3-8 6-10 0 5 6 8 6 14 0 5-4 8-10 8z"/>
+<path style="fill:#ffd23f;stroke:none" d="M50 88c-4 0-6-3-4-7 1 2 3 2 3 0 0-3 2-5 4-6 0 3 3 5 3 8 0 3-2 5-6 5z"/>"""
 
 _WEIHNACHTSBAUM = """
-<path class="k" d="M50 6L26 38h11L19 62h15L11 86h78L66 62h15L63 38h11z"/>
-<rect class="k" x="43" y="86" width="14" height="10"/>
-<circle class="w" cx="42" cy="50" r="3"/><circle class="w" cx="60" cy="70" r="3"/>
-<circle class="w" cx="36" cy="76" r="3"/><circle class="w" cx="56" cy="32" r="3"/>"""
+<path class="k" style="fill:#2f7d3a" d="M50 6L26 38h11L19 62h15L11 86h78L66 62h15L63 38h11z"/>
+<rect class="k" style="fill:#7a4a24" x="43" y="86" width="14" height="10"/>
+<circle style="fill:#d62828;stroke:none" cx="42" cy="50" r="4.5"/><circle style="fill:#f2c14e;stroke:none" cx="60" cy="70" r="4.5"/>
+<circle style="fill:#f2c14e;stroke:none" cx="36" cy="76" r="4.5"/><circle style="fill:#d62828;stroke:none" cx="56" cy="32" r="4.5"/>
+<path style="fill:#f2c14e" d="M50 0l3 6h-6z"/>"""
 
 _HERD = """
 <rect class="k" x="10" y="10" width="80" height="80" rx="4"/>
@@ -156,33 +159,33 @@ _HERD = """
 
 _FERNSEHER = """
 <rect class="k" x="6" y="14" width="88" height="58" rx="4"/>
-<rect class="f" x="14" y="22" width="72" height="42" rx="2"/>
+<rect class="f" style="fill:#9fd3f0" x="14" y="22" width="72" height="42" rx="2"/>
 <path d="M50 72v12M30 88h40"/>"""
 
 _KUEHLSCHRANK = """
-<rect class="k" x="24" y="4" width="52" height="90" rx="5"/>
+<rect class="k" style="fill:#6f8fa8" x="24" y="4" width="52" height="90" rx="5"/>
 <path class="w" d="M24 36h52M64 14v14M64 46v18"/>"""
 
 _SCHREIBTISCH = """
-<rect class="k" x="4" y="40" width="92" height="9" rx="2"/>
-<rect class="k" x="58" y="49" width="32" height="40"/>
+<rect class="k" style="fill:#7a4f2a" x="4" y="40" width="92" height="9" rx="2"/>
+<rect class="k" style="fill:#7a4f2a" x="58" y="49" width="32" height="40"/>
 <path class="w" d="M63 62h22M63 76h22"/>
 <path d="M12 49v40M22 40V24l14-8M36 16l6 6"/>"""
 
 _WASCHBECKEN = """
-<path class="k" d="M10 40h80c0 22-18 34-40 34S10 62 10 40z"/>
+<path class="k" style="fill:#9fb7c6" d="M10 40h80c0 22-18 34-40 34S10 62 10 40z"/>
 <path d="M50 40V22h16v8"/>
-<rect class="k" x="43" y="74" width="14" height="20"/>"""
+<rect class="k" style="fill:#9fb7c6" x="43" y="74" width="14" height="20"/>"""
 
 _REGAL = """
-<path d="M14 4v92M86 4v92M14 30h72M14 56h72M14 82h72"/>
-<rect class="k" x="20" y="10" width="8" height="20"/><rect class="k" x="30" y="14" width="7" height="16"/>
-<rect class="k" x="40" y="8" width="9" height="22"/><rect class="k" x="56" y="38" width="8" height="18"/>
-<rect class="k" x="66" y="40" width="9" height="16"/><rect class="k" x="22" y="64" width="18" height="18"/>
-<rect class="k" x="64" y="62" width="8" height="20"/>"""
+<path style="stroke:#7a4f2a" d="M14 4v92M86 4v92M14 30h72M14 56h72M14 82h72"/>
+<rect class="k" style="fill:#c0392b" x="20" y="10" width="8" height="20"/><rect class="k" style="fill:#2e6fb7" x="30" y="14" width="7" height="16"/>
+<rect class="k" style="fill:#4f8a3a" x="40" y="8" width="9" height="22"/><rect class="k" style="fill:#f2c14e" x="56" y="38" width="8" height="18"/>
+<rect class="k" style="fill:#8e44ad" x="66" y="40" width="9" height="16"/><rect class="k" style="fill:#d9804c" x="22" y="64" width="18" height="18"/>
+<rect class="k" style="fill:#2e6fb7" x="64" y="62" width="8" height="20"/>"""
 
 _INKUBATOR = """
-<rect class="k" x="8" y="14" width="84" height="70" rx="6"/>
+<rect class="k" style="fill:#8aa7b8" x="8" y="14" width="84" height="70" rx="6"/>
 <rect class="w" x="18" y="24" width="46" height="50" rx="3"/>
 <circle class="w" cx="78" cy="34" r="6"/>
 <path class="w" d="M72 54h12M72 64h12"/>
@@ -196,14 +199,14 @@ _MIKROSKOP = """
 <rect class="k" x="26" y="2" width="14" height="7" rx="2"/>"""
 
 _THEKE = """
-<rect class="k" x="2" y="34" width="96" height="9" rx="2"/>
-<rect class="k" x="8" y="43" width="84" height="49"/>
+<rect class="k" style="fill:#7a4f2a" x="2" y="34" width="96" height="9" rx="2"/>
+<rect class="k" style="fill:#b07a45" x="8" y="43" width="84" height="49"/>
 <path class="w" d="M30 52v30M50 52v30M70 52v30"/>
-<path class="f" d="M70 14h12l-2 20h-8z"/>"""
+<path class="f" style="fill:#f2c14e" d="M70 14h12l-2 20h-8z"/>"""
 
 _FAHRRAD = """
 <circle cx="24" cy="66" r="18"/><circle cx="78" cy="66" r="18"/>
-<path d="M24 66l18-30h30l6 30M42 36l14 30h22M56 66L36 26M30 26h14M72 36l-4-12h10"/>
+<path style="stroke:#c0392b" d="M24 66l18-30h30l6 30M42 36l14 30h22M56 66L36 26M30 26h14M72 36l-4-12h10"/>
 <circle class="k" cx="56" cy="66" r="4"/>"""
 
 _TOILETTE = """
@@ -215,24 +218,24 @@ _TOILETTE = """
 # --- Breite Icons für Gegenstände über zwei Felder (200 x 100, waagrecht) ---
 
 _BETT2 = """
-<rect class="f" x="14" y="16" width="174" height="68" rx="8"/>
-<rect class="k" x="8" y="10" width="12" height="80" rx="3"/>
+<rect class="f" style="fill:#a9c6e8" x="14" y="16" width="174" height="68" rx="8"/>
+<rect class="k" style="fill:#7a4f2a" x="8" y="10" width="12" height="80" rx="3"/>
 <rect class="f" x="28" y="26" width="32" height="48" rx="9"/>
 <path d="M80 16v68M80 16l18 18v50"/>"""
 
 _SOFA2 = """
-<rect class="f" x="10" y="14" width="180" height="72" rx="10"/>
-<rect class="f" x="10" y="14" width="180" height="22" rx="8"/>
-<rect class="f" x="10" y="14" width="22" height="72" rx="8"/>
-<rect class="f" x="168" y="14" width="22" height="72" rx="8"/>
+<rect class="f" style="fill:#7a9cc6" x="10" y="14" width="180" height="72" rx="10"/>
+<rect class="f" style="fill:#7a9cc6" x="10" y="14" width="180" height="22" rx="8"/>
+<rect class="f" style="fill:#7a9cc6" x="10" y="14" width="22" height="72" rx="8"/>
+<rect class="f" style="fill:#7a9cc6" x="168" y="14" width="22" height="72" rx="8"/>
 <path d="M100 36v50"/>"""
 
 _TISCH2 = """
-<rect class="k" x="12" y="20" width="176" height="60" rx="6"/>
+<rect class="k" style="fill:#7a4f2a" x="12" y="20" width="176" height="60" rx="6"/>
 <rect class="w" x="22" y="30" width="156" height="40" rx="3"/>"""
 
 _TEPPICH2 = """
-<rect class="f" x="18" y="16" width="164" height="68" rx="2"/>
+<rect class="f" style="fill:#c4553f" x="18" y="16" width="164" height="68" rx="2"/>
 <rect x="30" y="28" width="140" height="44" rx="2"/>
 <path d="M72 50l14-14 14 14-14 14zM114 50l14-14 14 14-14 14z"/>
 <path d="M8 24h10M8 38h10M8 52h10M8 66h10M8 80h0M182 24h10M182 38h10M182 52h10M182 66h10"/>"""
@@ -240,8 +243,8 @@ _TEPPICH2 = """
 # --- Skipiste ------------------------------------------------------------------
 
 _SCHNEEKANONE = """
-<path class="k" d="M18 60l44-30 10 15-44 30z"/>
-<path class="k" d="M60 27l8-5 10 15-8 5z"/>
+<path class="k" style="fill:#f2a22c" d="M18 60l44-30 10 15-44 30z"/>
+<path class="k" style="fill:#5b6670" d="M60 27l8-5 10 15-8 5z"/>
 <path d="M38 64l-10 26M38 64l12 26M22 90h32"/>
 <circle class="f" cx="84" cy="22" r="4"/><circle class="f" cx="92" cy="34" r="3"/>
 <circle class="f" cx="88" cy="10" r="3"/><circle class="f" cx="78" cy="8" r="2.5"/>"""
@@ -252,29 +255,29 @@ _SCHNEEMANN = """
 <circle class="f" cx="50" cy="23" r="10"/>
 <rect class="k" x="41" y="3" width="18" height="10" rx="1"/>
 <path d="M35 13h30M36 42L20 32M64 42l16-10"/>
-<path class="k" d="M50 22l11 3-11 2z"/>
+<path class="k" style="fill:#f08a24;stroke:#f08a24" d="M50 22l11 3-11 2z"/>
 <circle class="k" cx="50" cy="40" r="2.5"/><circle class="k" cx="50" cy="49" r="2.5"/>"""
 
 _FELSEN = """
-<path class="k" d="M8 86l12-38 20-22 24 6 18 24 10 30z"/>
+<path class="k" style="fill:#8a8783" d="M8 86l12-38 20-22 24 6 18 24 10 30z"/>
 <path class="w" d="M40 26l8 26M64 32l-8 24M48 52l-14 14"/>"""
 
 _SCHNEE = """
-<path d="M50 12v76M17 31l66 38M17 69l66-38"/>
-<path d="M42 18l8 8 8-8M42 82l8-8 8 8M17 42l11-3-3-11M83 58l-11 3 3 11M17 58l11 3-3 11M83 42l-11-3 3-11"/>"""
+<path style="stroke:#3f8fc4" d="M50 12v76M17 31l66 38M17 69l66-38"/>
+<path style="stroke:#3f8fc4" d="M42 18l8 8 8-8M42 82l8-8 8 8M17 42l11-3-3-11M83 58l-11 3 3 11M17 58l11 3-3 11M83 42l-11-3 3-11"/>"""
 
 _SCHANZE = """
-<path class="f" d="M6 86h88V40C64 46 34 66 6 86z"/>
+<path class="f" style="fill:#d6ecfa" d="M6 86h88V40C64 46 34 66 6 86z"/>
 <path d="M94 40h-6M20 86V76M40 86V64M60 86V52M80 86V44"/>"""
 
 _BUCKEL = """
-<path class="f" d="M4 82c6-30 32-30 38 0c6-30 32-30 38 0c4-12 10-16 16-16v16z"/>
+<path class="f" style="fill:#d6ecfa" d="M4 82c6-30 32-30 38 0c6-30 32-30 38 0c4-12 10-16 16-16v16z"/>
 <path d="M14 66c4-8 10-10 16-8M52 66c4-8 10-10 16-8"/>"""
 
 _TIEFSCHNEE = """
-<path class="f" d="M4 92V56c12-10 24-10 36 0s24 10 36 0 16-8 20-8v44z"/>
+<path class="f" style="fill:#d6ecfa" d="M4 92V56c12-10 24-10 36 0s24 10 36 0 16-8 20-8v44z"/>
 <path d="M4 74c12-10 24-10 36 0s24 10 36 0 16-8 20-8"/>
-<path d="M22 18v16M14 26h16M16 20l12 12M28 20L16 32M66 12v14M59 19h14M61 14l10 10M71 14L61 24"/>"""
+<path style="stroke:#3f8fc4" d="M22 18v16M14 26h16M16 20l12 12M28 20L16 32M66 12v14M59 19h14M61 14l10 10M71 14L61 24"/>"""
 
 
 KATALOG: dict[str, Objekt] = {o.kuerzel: o for o in [
