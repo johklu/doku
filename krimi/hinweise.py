@@ -446,3 +446,178 @@ class Kombi(Hinweis):
         # Die Teile zählen einzeln: "saß auf einem Sitz, direkt neben einer Kamera"
         # schließt ein weiteres "direkt neben einer Kamera" aus.
         return self.a.bausteine() | self.b.bausteine()
+
+
+# --- Hinweise für handgemachte Rätsel ------------------------------------------
+# Diese Bausteine prüfen anspruchsvollere Aussagen. Den Satz dazu schreibt man bei
+# handgemachten Rätseln selbst (er wird im Archiv eingefroren); die eingebauten
+# Texte sind nur eine schlichte Vorlage.
+
+_ZAHL = ["kein", "ein", "zwei", "drei", "vier", "fünf", "sechs", "sieben", "acht"]
+
+
+def _zahl(n: int) -> str:
+    return _ZAHL[n] if n < len(_ZAHL) else str(n)
+
+
+class NichtAufObjekt(Hinweis):
+    prio = 2
+
+    def __init__(self, p: int, k: str):
+        self.p, self.k = p, k
+        self.personen = (p,)
+
+    def erlaubt(self, fall, p, z):
+        if p != self.p:
+            return True
+        o = fall.objekt(z)
+        return o is None or o.kuerzel != self.k
+
+    def gilt(self, fall, pos):
+        return self.erlaubt(fall, self.p, pos[self.p])
+
+    def _text(self, fall):
+        return f"{_name(fall, self.p)} stand nicht auf: {fall.katalog[self.k].name}."
+
+
+class NebenAnzahl(Hinweis):
+    """Genau n Stücke der Art k direkt neben der Person (im selben Bereich)."""
+    prio = 4
+
+    def __init__(self, p: int, k: str, n: int):
+        self.p, self.k, self.n = p, k, n
+        self.personen = (p,)
+
+    @staticmethod
+    def zaehle(fall, z, k):
+        eigenes = fall.stueck_von[z[0]][z[1]]
+        stuecke = {fall.stueck_von[nz[0]][nz[1]] for nz in fall.nachbarn_im_bereich(z)
+                   if fall.objekt(nz) and fall.objekt(nz).kuerzel == k
+                   and fall.stueck_von[nz[0]][nz[1]] != eigenes}
+        return len(stuecke)
+
+    def erlaubt(self, fall, p, z):
+        return p != self.p or self.zaehle(fall, z, self.k) == self.n
+
+    def gilt(self, fall, pos):
+        return self.erlaubt(fall, self.p, pos[self.p])
+
+    def _text(self, fall):
+        return (f"{_name(fall, self.p)} hatte genau {_zahl(self.n)}-mal "
+                f"„{fall.katalog[self.k].name}“ direkt neben sich.")
+
+    def bausteine(self):
+        return {f"NebenAnzahl:{self.k}"}
+
+
+class InLinieMit(Hinweis):
+    """In der Zeile (achse 'z') bzw. Spalte ('s') der Person steht – auf einem
+    anderen Feld – ein Gegenstand der Art k (anzahl=None: mindestens einer,
+    sonst genau so viele; 0 = keiner)."""
+    prio = 4
+
+    def __init__(self, p: int, k: str, achse: str, anzahl: int | None = None):
+        self.p, self.k, self.achse, self.anzahl = p, k, achse, anzahl
+        self.personen = (p,)
+
+    def zaehle(self, fall, z):
+        if self.achse == "z":
+            felder = [(z[0], c) for c in range(fall.n) if c != z[1]]
+        else:
+            felder = [(r, z[1]) for r in range(fall.n) if r != z[0]]
+        stuecke = {fall.stueck_von[r][c] for r, c in felder
+                   if fall.objekt((r, c)) and fall.objekt((r, c)).kuerzel == self.k}
+        return len(stuecke)
+
+    def erlaubt(self, fall, p, z):
+        if p != self.p:
+            return True
+        n = self.zaehle(fall, z)
+        return n >= 1 if self.anzahl is None else n == self.anzahl
+
+    def gilt(self, fall, pos):
+        return self.erlaubt(fall, self.p, pos[self.p])
+
+    def _text(self, fall):
+        linie = "Zeile" if self.achse == "z" else "Spalte"
+        o = fall.katalog[self.k]
+        if self.anzahl == 0:
+            return f"In {_name(fall, self.p)}s {linie} gab es kein Feld mit „{o.name}“."
+        return f"In {_name(fall, self.p)}s {linie} gab es auch „{o.name}“."
+
+    def bausteine(self):
+        return {f"InLinieMit:{self.k}:{self.achse}"}
+
+
+class Abstand(_Binaer):
+    """q steht genau d Zeilen (achse 'z') bzw. Spalten ('s') weiter unten/rechts
+    als p (d negativ: weiter oben/links). betrag=True: Richtung egal."""
+    prio = 4
+
+    def __init__(self, p: int, q: int, achse: str, d: int, betrag: bool = False):
+        super().__init__(p, q)
+        self.achse, self.d, self.betrag = achse, d, betrag
+
+    def ok2(self, fall, za, zb):
+        i = 0 if self.achse == "z" else 1
+        diff = zb[i] - za[i]
+        return abs(diff) == abs(self.d) if self.betrag else diff == self.d
+
+    def _text(self, fall):
+        linie = "Zeilen" if self.achse == "z" else "Spalten"
+        return (f"Zwischen {_name(fall, self.p)} und {_name(fall, self.q)} lagen "
+                f"{abs(self.d)} {linie} Abstand.")
+
+
+class GleicherUntergrund(_Binaer):
+    """p und q standen auf derselben Art von Feld (beide leer zählt auch)."""
+    prio = 3
+
+    def ok2(self, fall, za, zb):
+        oa, ob = fall.objekt(za), fall.objekt(zb)
+        return (oa.kuerzel if oa else None) == (ob.kuerzel if ob else None)
+
+    def _text(self, fall):
+        return f"{_name(fall, self.p)} und {_name(fall, self.q)} standen auf dem gleichen Untergrund."
+
+
+class Und(Hinweis):
+    """Mehrere Aussagen in einem (frei formulierten) Satz. Der Löser behandelt
+    die Teile einzeln; im Lösungsweg wird der ganze Satz zitiert."""
+    prio = 4
+
+    def __init__(self, teile: list[Hinweis], subjekt: int | None = None):
+        self.teile = list(teile)
+        self._subjekt = self.teile[0].subjekt if subjekt is None else subjekt
+        self.personen = tuple(dict.fromkeys(p for t in self.teile for p in t.personen))
+        self.vorlage = None
+
+    @property
+    def subjekt(self):
+        return self._subjekt
+
+    def atome(self):
+        return [a for t in self.teile for a in atome(t)]
+
+    def gilt(self, fall, pos):
+        return all(t.gilt(fall, pos) for t in self.teile)
+
+    def _text(self, fall):
+        return self.vorlage or " ".join(type(t).text(t, fall) for t in self.teile)
+
+    def schluessel(self):
+        return ("Und",) + tuple(t.schluessel() for t in self.teile)
+
+    def bausteine(self):
+        return set().union(*(t.bausteine() for t in self.teile))
+
+
+def atome(h: Hinweis) -> list[Hinweis]:
+    """Die einzelnen Bedingungen eines Hinweises (bei Und: alle Teile; jedes
+    Teil zeigt im Lösungsweg auf den ganzen Satz)."""
+    if isinstance(h, Und):
+        teile = h.atome()
+        for t in teile:
+            t.text = h.text          # im Lösungsweg den ganzen Satz zitieren
+        return teile
+    return [h]

@@ -17,7 +17,7 @@ from __future__ import annotations
 from itertools import combinations
 
 from .fall import Fall, Zelle
-from .hinweise import Hinweis
+from .hinweise import Hinweis, atome
 
 
 class Widerspruch(Exception):
@@ -45,9 +45,10 @@ class Logik:
         self.P = len(fall.personen)
         self.v = fall.opfer_index
         self.protokoll = protokoll
-        unaer = list(hinweise)   # zweistellige Hinweise erlauben einzeln alles – außer Kombis
-        self.binaer = [h for h in hinweise if h.paar() is not None]
-        self.allein = {h.allein: h for h in hinweise if h.allein is not None}
+        einzeln = [a for h in hinweise for a in atome(h)]
+        unaer = list(einzeln)   # zweistellige Hinweise erlauben einzeln alles – außer Kombis
+        self.binaer = [h for h in einzeln if h.paar() is not None]
+        self.allein = {h.allein: h for h in einzeln if h.allein is not None}
         self.hinweis_von: dict[int, Hinweis] = {}
         for h in hinweise:
             self.hinweis_von.setdefault(h.subjekt, h)

@@ -4,41 +4,37 @@
     "titel": "Puder auf der Piste",
     "taeter": "Johann",
     "positionen": {
-      "Calzi": "B6",
+      "Calzi": "A5",
       "Hosen": "C8",
       "Pete": "H7",
       "Leah": "I2",
       "Johann": "D3",
-      "Ovomaltine": "E9",
-      "Equi": "G4",
-      "Trilling": "F5",
-      "Ranges": "A1"
+      "Equi": "F6",
+      "Trilling": "G4",
+      "Ranges": "B1",
+      "Ovomaltine": "E9"
     },
     "hinweise": [
-      "Calzi saß auf einem Stuhl, weiter unten als Leah.",
-      "Hosen befand sich direkt neben einer Theke.",
-      "Pete befand sich in Zeile 7.",
-      "Leah stand im Tiefschnee.",
-      "Johann befand sich in Zeile 3.",
-      "Equi befand sich in Zeile 4.",
-      "Trilling und Equi befanden sich schräg nebeneinander.",
-      "Ranges war auf dem Stein, weiter links als Calzi.",
-      "Die Ovomaltine befand sich nicht neben einer Schneekanone."
+      "Calzi saß im Lift, ganz außen am Rand des Plans – und in seiner Zeile stand auch eine Schneekanone.",
+      "Hosen saß im Rufalipark auf einem Sitz, aber nicht direkt neben dem Kamin.",
+      "Pete stand auf einem Buckel – allerdings nicht auf der roten Piste.",
+      "Leah stand im Tiefschnee, genau fünf Zeilen über Pete.",
+      "Johann stand im Schnee, weiter oben als Trilling, aber weiter rechts als Hosen.",
+      "Auch Equi war auf der roten Piste – genau zwei Zeilen unter Trilling.",
+      "Trilling stand im Schnee, direkt neben einem Felsen.",
+      "Ranges saß auf dem Stein – aber nicht im Schnee.",
+      "Die Ovomaltine lag im Schnee, in derselben Zeile wie ein Schneemann."
     ],
-    "proben": 2,
+    "proben": 0,
     "loesungsweg": [
-      "Hosen befand sich direkt neben einer Theke – das geht nur auf A7, B7 oder C8.",
-      "Ranges war auf dem Stein, weiter links als Calzi – damit bleibt für Ranges nur A1.",
-      "In Zeile 2 kann nur noch Leah stehen – also auf I2.",
-      "In Zeile 6 kann nur noch Calzi stehen – also auf B6.",
-      "Hosen befand sich direkt neben einer Theke – von den passenden Feldern ist nur noch C8 frei.",
-      "Angenommen, Equi stünde auf D4. Daraus folgt: Trilling auf E5 – und dann wäre außer der Ovomaltine nicht genau eine weitere Person im selben Bereich (dann gäbe es keinen eindeutigen Übeltäter). Also scheidet D4 für Equi aus.",
-      "Angenommen, Equi stünde auf E4. Daraus folgt: Trilling auf D5 – und dann wäre außer der Ovomaltine nicht genau eine weitere Person im selben Bereich (dann gäbe es keinen eindeutigen Übeltäter). Also scheidet E4 für Equi aus.",
-      "Damit bleibt für Equi nur noch G4.",
-      "Trilling und Equi befanden sich schräg nebeneinander – da Equi schon feststeht, bleibt für Trilling nur F5.",
-      "Im Bereich des Opfers muss genau eine weitere Person sein – damit steht Johann auf D3.",
-      "Pete befand sich in Zeile 7 – von den passenden Feldern ist nur noch H7 frei.",
-      "Übrig bleibt E9: Dort war die Ovomaltine. Auf der blauen Piste war sonst nur Johann – also: Johann hat die Ovomaltine geklaut!"
+      "Tiefschnee gibt es nur in Spalte I – dort steht Leah. Pete steht auf einem Buckel, aber nicht auf der roten Piste, also irgendwo auf H3 bis H7. Weil Leah genau fünf Zeilen über Pete steht, kommt für Pete nur Zeile 6 oder 7 infrage (H6 oder H7) und für Leah I1 oder I2.",
+      "Calzi sitzt im Lift. Schneekanonen gibt es nur in Zeile 1 und Zeile 5 – im Lift bleibt damit nur Zeile 5. Ganz außen am Rand ist dort nur A5: Calzi sitzt auf A5.",
+      "Der Stein liegt ganz in Zeile 1. Ranges sitzt dort nicht im Schnee, also auf A1, B1 oder C1 – Spalte A gehört schon Calzi, bleibt B1 oder C1. Jedenfalls ist Zeile 1 vergeben: Leah steht auf I2, und Pete genau fünf Zeilen tiefer auf H7.",
+      "Hosen sitzt auf einem Sitz im Rufalipark: D7, C8 oder C9. C9 liegt direkt neben dem Kamin, D7 in Petes Zeile 7 – also sitzt Hosen auf C8. Damit ist Spalte C belegt, und Ranges sitzt auf B1.",
+      "Trilling steht im Schnee direkt neben einem Felsen. Neben dem Felsen auf der schwarzen Piste (I6) liegt kein Schnee; neben dem Felsen F4 zählen nur F3, G4 und F5 (E4 gehört zur blauen Piste). Equi steht zwei Zeilen tiefer, ebenfalls auf der roten Piste. Trilling auf F3? Dann müsste Equi in Zeile 5 stehen – F5 ist Trillings Spalte, G5 die Schneekanone. Trilling auf F5? Dann müsste Equi in Zeile 7 stehen – dort steht schon Pete. Also steht Trilling auf G4 und Equi auf F6 (G6 wäre wieder Trillings Spalte).",
+      "Schneemänner stehen in Zeile 1 und Zeile 9. Zeile 1 ist vergeben, also lag die Ovomaltine in Zeile 9 im Schnee: E9, F9 oder G9. Die Spalten F und G sind schon belegt – die Ovomaltine lag auf E9.",
+      "Übrig sind nur noch Zeile 3 und Spalte D: Johann stand auf D3 – im Schnee, weiter oben als Trilling und weiter rechts als Hosen, genau wie sein Hinweis sagt.",
+      "Die Ovomaltine lag auf der blauen Piste, und dort war sonst nur Johann. Also: Johann hat die Ovomaltine geklaut!"
     ]
   }
 ]

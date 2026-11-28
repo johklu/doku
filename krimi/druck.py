@@ -207,9 +207,12 @@ def _seite_regeln(fall: Fall | None) -> str:
       Wer auf der Tribüne steht, ist nie „neben dem Tor“.</dd>
     <dt>schräg nebeneinander</dt><dd>zwei Personen auf diagonal benachbarten Feldern im
       selben Bereich.</dd>
-    <dt>weiter links / rechts</dt><dd>in irgendeiner Spalte weiter links bzw. rechts
-      auf dem Plan – nicht unbedingt direkt daneben.</dd>
-    <dt>weiter oben / unten</dt><dd>in irgendeiner Zeile weiter oben bzw. unten auf dem Plan.</dd>
+    <dt>weiter links / oben …</dt><dd>in irgendeiner Spalte weiter links bzw. Zeile weiter
+      oben – nicht unbedingt direkt daneben.</dd>
+    <dt>genau zwei Zeilen über …</dt><dd>zählt nur die Zeilen: Zeile 3 liegt genau zwei Zeilen
+      über Zeile 5 – die Spalte ist egal.</dd>
+    <dt>in derselben Zeile wie …</dt><dd>irgendwo in dieser Zeile des Plans, auch in einem
+      anderen Bereich (Spalte genauso).</dd>
     <dt>äußerer Rand</dt><dd>die äußerste Zeile oder Spalte des Plans.</dd>
     <dt>allein im Bereich</dt><dd>sonst niemand – auch nicht das „Opfer“ – war in diesem Bereich.</dd>
   </dl>
@@ -451,9 +454,10 @@ h3 { font-family: var(--titel), monospace; font-weight: 400; font-size: 11pt;
           font-size: 13pt; }
 .urteil .linie { flex: 1; border-bottom: 1.5px dashed var(--tinte); max-width: 75mm; }
 
-.regelliste li, .tipps li { margin-bottom: 2mm; }
+.regelliste li, .tipps li { margin-bottom: 1.2mm; }
+.tipps { font-size: 11.5pt; }
 .regelliste { padding-left: 6mm; }
-.woerter { display: grid; grid-template-columns: 48mm 1fr; gap: 1.6mm 4mm; margin: 0; }
+.woerter { display: grid; grid-template-columns: 48mm 1fr; gap: .8mm 4mm; margin: 0; font-size: 11pt; }
 .woerter dt { font-weight: 600; }
 .woerter dd { margin: 0; }
 

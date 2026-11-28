@@ -26,6 +26,9 @@ ARGUMENTE = {
     "AmRand": ["p", "ja"], "Allein": ["p"],
     "GleicherBereich": ["p", "q"], "AndererBereich": ["p", "q"], "Schraeg": ["p", "q"],
     "InSpalte": ["p", "s"], "InZeile": ["p", "r"],
+    "NichtAufObjekt": ["p", "k"], "NebenAnzahl": ["p", "k", "n"],
+    "InLinieMit": ["p", "k", "achse", "anzahl"],
+    "Abstand": ["p", "q", "achse", "d", "betrag"], "GleicherUntergrund": ["p", "q"],
     "Links": ["p", "q", "umgekehrt"], "Oben": ["p", "q", "umgekehrt"],
 }
 
@@ -39,6 +42,9 @@ def _hinweis_zu_dict(fall: Fall, h: H.Hinweis) -> dict:
     typ = type(h).__name__
     if typ == "Kombi":
         return {"typ": typ, "a": _hinweis_zu_dict(fall, h.a), "b": _hinweis_zu_dict(fall, h.b)}
+    if typ == "Und":
+        return {"typ": typ, "subjekt": fall.personen[h.subjekt].name,
+                "teile": [_hinweis_zu_dict(fall, t) for t in h.teile]}
     d = {"typ": typ}
     for arg in ARGUMENTE[typ]:
         wert = getattr(h, arg)
@@ -47,9 +53,11 @@ def _hinweis_zu_dict(fall: Fall, h: H.Hinweis) -> dict:
 
 
 def _hinweis_aus_dict(fall: Fall, d: dict) -> H.Hinweis:
+    index = {p.name: i for i, p in enumerate(fall.personen)}
     if d["typ"] == "Kombi":
         return H.Kombi(_hinweis_aus_dict(fall, d["a"]), _hinweis_aus_dict(fall, d["b"]))
-    index = {p.name: i for i, p in enumerate(fall.personen)}
+    if d["typ"] == "Und":
+        return H.Und([_hinweis_aus_dict(fall, t) for t in d["teile"]], index[d["subjekt"]])
     args = [index[d[a]] if a in ("p", "q") else d[a] for a in ARGUMENTE[d["typ"]]]
     return getattr(H, d["typ"])(*args)
 

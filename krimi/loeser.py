@@ -17,7 +17,7 @@ from __future__ import annotations
 import time
 
 from .fall import Fall, Zelle
-from .hinweise import Hinweis
+from .hinweise import Hinweis, atome
 
 # Zeitbremse für den Generator: ist eine Frist gesetzt (time.time()-Wert),
 # bricht jede Suche danach mit `Zeitueberschreitung` ab.
@@ -30,6 +30,7 @@ class Zeitueberschreitung(Exception):
 
 def _vorbereiten(fall: Fall, hinweise: list[Hinweis]):
     P = len(fall.personen)
+    hinweise = [a for h in hinweise for a in atome(h)]
     unaer = list(hinweise)   # zweistellige Hinweise erlauben einzeln alles – außer Kombis
     binaer = [h for h in hinweise if h.paar() is not None]
     allein = {h.allein for h in hinweise if h.allein is not None}
