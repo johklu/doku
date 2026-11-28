@@ -69,7 +69,7 @@ class Hinweis:
 
     def schluessel(self):
         return (type(self).__name__,) + tuple(
-            v for k, v in sorted(vars(self).items()))
+            v for k, v in sorted(vars(self).items()) if k != "text")
 
     def bausteine(self) -> set[str]:
         """Kennungen der Aussage – zwei Hinweise mit gemeinsamer Kennung wären

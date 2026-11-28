@@ -14,52 +14,62 @@ f = lade_fall(FALL)
 Ca, Ho, Pe, Le, Jo, Eq, Tr, Ra, Ov = range(9)
 
 HINWEISE = [
-    (H.Und([H.ImBereich(Ca, "D"), H.AmRand(Ca), H.InLinieMit(Ca, "Sk", "z")]),
-     "Calzi saß im Lift, ganz außen am Rand des Plans – und in seiner Zeile stand "
-     "auch eine Schneekanone."),
-    (H.Und([H.ImBereich(Ho, "E"), H.AufObjekt(Ho, "Si"), H.NichtNebenObjekt(Ho, "Km")]),
-     "Hosen saß im Rufalipark auf einem Sitz, aber nicht direkt neben dem Kamin."),
-    (H.Und([H.AufObjekt(Pe, "Bk"), H.NichtImBereich(Pe, "B")]),
-     "Pete stand auf einem Buckel – allerdings nicht auf der roten Piste."),
-    (H.Und([H.AufObjekt(Le, "Ts"), H.Abstand(Le, Pe, "z", 5)]),
-     "Leah stand im Tiefschnee, genau fünf Zeilen über Pete."),
-    (H.Und([H.AufObjekt(Jo, "Sn"), H.Oben(Jo, Tr), H.Links(Ho, Jo)], Jo),
-     "Johann stand im Schnee, weiter oben als Trilling, aber weiter rechts als Hosen."),
-    (H.Und([H.ImBereich(Eq, "B"), H.Abstand(Tr, Eq, "z", 2)], Eq),
-     "Auch Equi war auf der roten Piste – genau zwei Zeilen unter Trilling."),
-    (H.Und([H.AufObjekt(Tr, "Sn"), H.NebenObjekt(Tr, "Fs")]),
-     "Trilling stand im Schnee, direkt neben einem Felsen."),
-    (H.Und([H.ImBereich(Ra, "F"), H.NichtAufObjekt(Ra, "Sn")]),
-     "Ranges saß auf dem Stein – aber nicht im Schnee."),
-    (H.Und([H.AufObjekt(Ov, "Sn"), H.InLinieMit(Ov, "Sm", "z")]),
-     "Die Ovomaltine lag im Schnee, in derselben Zeile wie ein Schneemann."),
+    (H.Und([H.AufObjekt(Ca, "St"), H.AmRand(Ca)]),
+     "Calzi saß auf einem Stuhl, ganz außen am Rand des Plans."),
+    (H.Und([H.AufObjekt(Ho, "Si")]),
+     "Hosen saß auf einem Sitz."),
+    (H.Und([H.Oben(Jo, Pe), H.InLinieMit(Pe, "Bk", "s")], Pe),
+     "Pete stand weiter unten als Johann – in einer Spalte, in der es auch Buckel gab."),
+    (H.Und([H.AufObjekt(Le, "Ts")]),
+     "Leah stand im Tiefschnee."),
+    (H.Und([H.NebenAnzahl(Jo, "Sn", 3), H.Abstand(Jo, Ca, "z", 2)]),
+     "Johann hatte genau dreimal Schnee direkt neben sich, und Calzi saß genau zwei "
+     "Zeilen tiefer als er."),
+    (H.Und([H.NebenAnzahl(Eq, "Sn", 2), H.Oben(Tr, Eq)], Eq),
+     "Equi hatte genau zweimal Schnee direkt neben sich und stand weiter unten als "
+     "Trilling."),
+    (H.Und([H.NebenObjekt(Tr, "Fs"), H.Abstand(Tr, Pe, "z", 3)]),
+     "Trilling stand direkt neben einem Felsen; Pete war genau drei Zeilen tiefer."),
+    (H.Und([H.InLinieMit(Ra, "Sm", "z"), H.Links(Ra, Eq)]),
+     "Ranges war in derselben Zeile wie ein Schneemann – und weiter links als Equi."),
+    (H.Und([H.AmRand(Ov), H.NichtNebenObjekt(Ov, "Bk")]),
+     "Die Ovomaltine lag am äußeren Rand des Plans, aber nicht neben einem Buckel."),
 ]
 
 LOESUNGSWEG = [
-    "Tiefschnee gibt es nur in Spalte I – dort steht Leah. Pete steht auf einem Buckel, "
-    "aber nicht auf der roten Piste, also irgendwo auf H3 bis H7. Weil Leah genau fünf "
-    "Zeilen über Pete steht, kommt für Pete nur Zeile 6 oder 7 infrage (H6 oder H7) und "
-    "für Leah I1 oder I2.",
-    "Calzi sitzt im Lift. Schneekanonen gibt es nur in Zeile 1 und Zeile 5 – im Lift "
-    "bleibt damit nur Zeile 5. Ganz außen am Rand ist dort nur A5: Calzi sitzt auf A5.",
-    "Der Stein liegt ganz in Zeile 1. Ranges sitzt dort nicht im Schnee, also auf A1, B1 "
-    "oder C1 – Spalte A gehört schon Calzi, bleibt B1 oder C1. Jedenfalls ist Zeile 1 "
-    "vergeben: Leah steht auf I2, und Pete genau fünf Zeilen tiefer auf H7.",
-    "Hosen sitzt auf einem Sitz im Rufalipark: D7, C8 oder C9. C9 liegt direkt neben dem "
-    "Kamin, D7 in Petes Zeile 7 – also sitzt Hosen auf C8. Damit ist Spalte C belegt, "
-    "und Ranges sitzt auf B1.",
-    "Trilling steht im Schnee direkt neben einem Felsen. Neben dem Felsen auf der "
-    "schwarzen Piste (I6) liegt kein Schnee; neben dem Felsen F4 zählen nur F3, G4 und "
-    "F5 (E4 gehört zur blauen Piste). Equi steht zwei Zeilen tiefer, ebenfalls auf der "
-    "roten Piste. Trilling auf F3? Dann müsste Equi in Zeile 5 stehen – F5 ist Trillings "
-    "Spalte, G5 die Schneekanone. Trilling auf F5? Dann müsste Equi in Zeile 7 stehen – "
-    "dort steht schon Pete. Also steht Trilling auf G4 und Equi auf F6 (G6 wäre wieder "
-    "Trillings Spalte).",
-    "Schneemänner stehen in Zeile 1 und Zeile 9. Zeile 1 ist vergeben, also lag die "
-    "Ovomaltine in Zeile 9 im Schnee: E9, F9 oder G9. Die Spalten F und G sind schon "
-    "belegt – die Ovomaltine lag auf E9.",
-    "Übrig sind nur noch Zeile 3 und Spalte D: Johann stand auf D3 – im Schnee, weiter "
-    "oben als Trilling und weiter rechts als Hosen, genau wie sein Hinweis sagt.",
+    "Ein Stuhl ganz am Rand – das gibt es nur im Lift in Spalte A: Calzi saß auf A2, A3, "
+    "A5 oder A6. Johann war genau zwei Zeilen höher und hatte genau dreimal Schnee neben "
+    "sich (nur gleicher Bereich zählt). In Zeile 1 gibt es kein solches Feld, in Zeile 3 "
+    "nur D3, in Zeile 4 nur D4. Also: Calzi auf A5 und Johann auf D3 – oder Calzi auf A6 "
+    "und Johann auf D4. Spalte A gehört Calzi, Spalte D Johann.",
+    "Tiefschnee gibt es nur in Spalte I: Leah stand dort. Wer könnte noch in Zeile 2 "
+    "stehen? Calzi, Johann und Hosen nicht; Trilling steht neben einem Felsen, frühestens "
+    "in Zeile 3 – also stehen Equi (tiefer als Trilling) und Pete (drei Zeilen tiefer) "
+    "noch weiter unten. Ranges braucht eine Zeile mit Schneemann (1 oder 9). Die "
+    "Ovomaltine könnte in Zeile 2 nur am Rand liegen, also auf A2 oder I2 – das sind "
+    "Calzis und Leahs Spalten. Zeile 2 bleibt also für Leah: I2.",
+    "Hosen saß auf einem Sitz: D7, C8 oder C9. Spalte D gehört Johann – Hosen saß in "
+    "Spalte C.",
+    "Die Ovomaltine lag am Rand. Die Randspalten A und I sind vergeben, also lag sie in "
+    "Zeile 1 oder 9 – genau wie Ranges (Schneemänner gibt es nur in Zeile 1 und 9). Die "
+    "beiden teilen sich also die Zeilen 1 und 9, für alle anderen sind sie tabu. Damit "
+    "sitzt Hosen auf C8.",
+    "Trilling stand neben einem Felsen, Pete genau drei Zeilen tiefer in einer Spalte mit "
+    "Buckeln (G oder H). Am Felsen I6 kämen I5, I7 und H6 infrage – Spalte I gehört aber "
+    "Leah, und von H6 aus müsste Pete in Zeile 9 stehen. Bleiben die Felder am Felsen F4: "
+    "F3, G4 und F5. F5 geht nicht: Pete müsste in Zeile 8 – dort sitzt Hosen. "
+    "F3 geht auch nicht: Dann wäre Zeile 3 belegt, Johann müsste auf D4 und Calzi auf A6 "
+    "– aber Pete stünde ebenfalls in Zeile 6. Also: Trilling auf G4 und Pete auf H7 (G7 "
+    "ist Trillings Spalte). Zeile 4 ist damit belegt: Johann auf D3, Calzi auf A5.",
+    "Für Equi bleibt Zeile 6 – mit genau zweimal Schnee daneben: E6 oder F6. Frei sind "
+    "nur noch die Spalten B, E und F für Equi, Ranges und die Ovomaltine. Stünde Equi auf "
+    "E6 (blaue Piste), müsste Ranges links davon auf B1 sitzen und die Ovomaltine auf F9 "
+    "liegen – ebenfalls blaue Piste. Dann wären Johann und Equi beide bei der Ovomaltine, "
+    "es gäbe keinen eindeutigen Übeltäter. Also steht Equi auf F6.",
+    "Ranges und die Ovomaltine teilen sich die Spalten B und E sowie die Zeilen 1 und 9. "
+    "B9 ist der Kamin – also liegt eine der beiden auf B1, die andere auf E9. Läge die "
+    "Ovomaltine auf B1, wäre sie allein auf dem Stein, ohne Übeltäter. Also sitzt Ranges "
+    "auf B1, und die Ovomaltine lag auf E9.",
     "Die Ovomaltine lag auf der blauen Piste, und dort war sonst nur Johann. "
     "Also: Johann hat die Ovomaltine geklaut!",
 ]
