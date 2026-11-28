@@ -65,21 +65,35 @@ def felder(f, p, teile):
     return [z for z in f.zellen() if f.besetzbar(z) and all(t.erlaubt(f, p, z) for t in un)]
 
 
+THEMA = (H.AufObjekt, H.NebenObjekt, H.NebenAnzahl, H.InLinieMit, H.ImBereich)
+
+
 def kandidaten(f, pos, p, rng, min_felder, anzahl=400):
+    """Jeder Hinweis: ein thematischer Teil (Gegenstand/Bereich) und meist noch
+    ein zweiter Teil (Verneinung, Rand oder eine kurze Lagebeziehung)."""
     opfer = p == f.opfer_index
     un, bi = atome_fuer(f, pos, p, opfer)
-    aus = []
-    for _ in range(anzahl * 3):
-        art = rng.random()
-        if opfer or art < 0.35:
-            teile = rng.sample(un, 2) if rng.random() < 0.6 else [rng.choice(un)]
-        elif art < 0.75:
-            teile = [rng.choice(un), rng.choice(bi)]
-        else:
-            teile = [rng.choice(bi)] if rng.random() < 0.5 else rng.sample(bi, 2)
+    thema = [t for t in un if isinstance(t, THEMA)
+             and not (isinstance(t, H.InLinieMit) and t.anzahl == 0)]
+    rest = [t for t in un if t not in thema]
+    bi = [t for t in bi if not (isinstance(t, H.Abstand) and not 1 <= abs(t.d) <= 3)]
+    aus, gesehen = [], set()
+    for _ in range(anzahl * 4):
+        teile = [rng.choice(thema)]
+        r = rng.random()
+        if r < 0.25 or not bi:
+            if rng.random() < 0.5:
+                teile.append(rng.choice(rest + thema))
+        elif not opfer:
+            teile.append(rng.choice(bi))
+        if len(teile) == 2 and teile[0] is teile[1]:
+            continue
         if len(felder(f, p, teile)) < min_felder:
             continue
-        # jeder Teil muss etwas beitragen
+        sch = tuple(sorted(str(t.schluessel()) for t in teile))
+        if sch in gesehen:
+            continue
+        gesehen.add(sch)
         aus.append(H.Und(teile, p))
         if len(aus) >= anzahl:
             break
@@ -90,7 +104,7 @@ def anzahl(f, hs, limit=40):
     return len(finde_loesungen(f, hs, limit=limit))
 
 
-def suche(f, pos, seed, min_felder=5, frist=300):
+def suche(f, pos, seed, min_felder=3, frist=240):
     rng = random.Random(seed)
     loeser.FRIST = time.time() + frist
     try:
@@ -113,7 +127,7 @@ def suche(f, pos, seed, min_felder=5, frist=300):
             return None
         hs = list(wahl.values())
         l = Logik(f, hs, protokoll=False)
-        if not l.loese():
+        if not l.loese() or not 2 <= l.proben <= 6 or l.max_kette > 3:
             return None
         return wahl, l.proben, l.max_kette
     except Zeitueberschreitung:
