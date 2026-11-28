@@ -113,7 +113,7 @@ def formen(h):
     return {FORM.get(type(t).__name__, type(t).__name__) for t in h.teile}
 
 
-def passt(wahl, p, h, grenze=2):
+def passt(wahl, p, h, grenze=3):
     """Vielfalt: keine Hinweisform öfter als `grenze`-mal im ganzen Rätsel."""
     from collections import Counter
     c = Counter()
